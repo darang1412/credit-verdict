@@ -31,7 +31,7 @@ from sklearn.model_selection import train_test_split
 
 from train import BASE_DIR, MLFLOW_DB_PATH, MLFLOW_EXPERIMENT, load_features, split_data
 
-FIGURES_DIR = BASE_DIR / "modeling" / "figures"
+FIGURES_DIR = BASE_DIR / "reports" / "figures"
 
 # Same finalized hyperparameters as Phase 5's LightGBM (see train.py).
 # n_estimators is fixed at 441 - the manually-determined true best iteration

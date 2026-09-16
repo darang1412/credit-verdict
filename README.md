@@ -63,7 +63,7 @@ Credit Verdict addresses both halves of that problem in one system:
 | **Dataset** | 307,511 loan applications (8.1% default rate) |
 | **RAGAS faithfulness (Adverse Action explanations)** | [X] |
 
-AUC alone isn't the headline metric here — see [`notebook/model_evaluation.ipynb`](notebook/model_evaluation.ipynb) for the calibration curve and Brier score comparison that this project treats as equally important.
+AUC alone isn't the headline metric here — see [`notebooks/model_evaluation.ipynb`](notebooks/model_evaluation.ipynb) for the calibration curve and Brier score comparison that this project treats as equally important.
 
 ## LangGraph Multi-Agent Flow
 
@@ -129,7 +129,7 @@ Retrieval is only invoked when grounding is actually needed for the answer — S
 ## Development Tools
 
 - **VS Code** – Primary editor.
-- **Claude Code** – Phase-by-phase implementation, with resource checkpoints and report updates at each stage (see `CreditRisk_Study_Roadmap.md`).
+- **Claude Code** – Phase-by-phase implementation, with resource checkpoints and report updates at each stage (see `roadmap.md`).
 - **Postman** – API testing.
 - **Git / GitHub Actions** – Version control, CI (tests + lint on push).
 
@@ -251,17 +251,25 @@ streamlit run backend/dev_view.py
 
 ```
 .
-├── pipeline/       # Data ingestion, cleaning, feature engineering
-├── modeling/       # Training, calibration
-├── explain/        # SHAP analysis
-├── rag/            # LangGraph agents, corpus builder, Adverse Action generator
-├── backend/        # FastAPI app, Streamlit dev view
-├── business/        # Dashboard assets, business case materials
-├── notebook/        # EDA, modeling, and evaluation notebooks
-├── docs/adr/         # Architecture Decision Records (e.g., scaling strategy)
-├── CreditRisk_Study_Roadmap.md    # Phase-by-phase build roadmap
-├── CreditRisk_Project_Report.md   # Full 9-section project report
-├── MODEL_CARD.md                  # Model card (intended use, limitations, performance)
+├── data/                     # raw/interim/processed/external (gitignored; regenerate via ml/pipeline)
+├── notebooks/                # EDA, modeling, and evaluation notebooks, numbered by run order
+├── ml/
+│   ├── pipeline/             # Data ingestion, cleaning, feature engineering
+│   ├── modeling/             # Training, calibration
+│   └── explain/              # SHAP analysis
+├── models/                   # Trained/serialized model artifacts (gitignored)
+├── reports/                  # Generated figures + SHAP output (reports/figures/, reports/top_shap_factors.json)
+├── rag/                      # LangGraph agents, corpus builder, Adverse Action generator
+├── backend/                  # FastAPI app, Streamlit dev view
+├── frontend/                 # React chat interface + dashboard link
+├── business/                 # Power BI dashboard assets, business case materials
+├── assets/                   # Demo GIF / README screenshots
+├── docs/
+│   └── adr/                  # Architecture Decision Records (e.g., scaling strategy)
+├── tests/
+├── roadmap.md                      # Phase-by-phase build roadmap
+├── CreditRisk_Project_Report.md    # Full 9-section project report
+├── MODEL_CARD.md                   # Model card (intended use, limitations, performance)
 ├── docker-compose.yml
 └── requirements.txt
 ```
@@ -274,7 +282,7 @@ CI runs tests and lint on every push (`.github/workflows/ci.yml`).
 
 ## Dataset
 
-[Home Credit Default Risk](https://www.kaggle.com/c/home-credit-default-risk) (Kaggle). Real, multi-table application data — see `notebook/` for the full EDA.
+[Home Credit Default Risk](https://www.kaggle.com/c/home-credit-default-risk) (Kaggle). Real, multi-table application data — see `notebooks/` for the full EDA.
 
 ## Model Card
 

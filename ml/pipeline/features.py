@@ -8,7 +8,7 @@ SK_ID_CURR and aggregate (count/mean/max/sum) its many rows-per-applicant down
 to a handful of summary columns, then join those onto application_train.
 
 This also bakes in the concrete action items from the Phase 3 EDA
-(pipeline/eda.ipynb) rather than leaving them as loose notes:
+(notebooks/01_eda_application.ipynb) rather than leaving them as loose notes:
   - DAYS_EMPLOYED's 365243 sentinel -> NaN + IS_DAYS_EMPLOYED_ANOMALY flag
   - HAS_BUREAU_HISTORY flag (missingness itself is informative here)
   - CREDIT/INCOME-style ratios instead of relying on raw income/credit alone
@@ -27,10 +27,12 @@ import pandas as pd
 
 # Resolved relative to this file, not the current working directory - a
 # relative string like "data/raw" only works if you happen to run the script
-# from inside pipeline/, which breaks the moment it's run from the repo root,
-# a different cwd, or an IDE "Run" button that doesn't set cwd the same way.
-BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = str(BASE_DIR / "data" / "raw")
+# from inside ml/pipeline/, which breaks the moment it's run from the repo
+# root, a different cwd, or an IDE "Run" button that doesn't set cwd the same
+# way. REPO_ROOT climbs out of ml/pipeline/ to the top-level data/ directory
+# shared by every phase, rather than a local pipeline-only copy.
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+DATA_DIR = str(REPO_ROOT / "data" / "raw")
 
 # Columns that are only NaN after a left-join because the applicant has zero
 # rows in that auxiliary table - i.e. the true value is 0, not "unknown".
@@ -258,7 +260,7 @@ def build_feature_table(data_dir: str = DATA_DIR, save_path: str | None = None) 
 
 
 if __name__ == "__main__":
-    table = build_feature_table(save_path=str(BASE_DIR / "data" / "processed" / "features.parquet"))
+    table = build_feature_table(save_path=str(REPO_ROOT / "data" / "processed" / "features.parquet"))
     n_engineered = (
         table.shape[1]
         - pd.read_csv(f"{DATA_DIR}/application_train.csv", nrows=0).shape[1]

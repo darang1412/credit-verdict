@@ -3,9 +3,11 @@
 kaggle.json
 
 # Data (Home Credit CSVs are large and shouldn't live in git)
-pipeline/data/raw/
-pipeline/data/interim/
-pipeline/data/processed/
+data/raw/
+data/interim/
+data/processed/
+data/external/
+!data/**/.gitkeep
 *.csv
 *.csv.zip
 
@@ -21,7 +23,8 @@ venv/
 # Models / artifacts
 *.pkl
 *.joblib
-modeling/artifacts/
+models/*
+!models/.gitkeep
 
 # MLflow local tracking store (logged models/metrics - regenerable by re-running training)
 mlruns/

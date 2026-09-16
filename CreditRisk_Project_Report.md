@@ -77,11 +77,11 @@ The dataset is Kaggle's **Home Credit Default Risk** competition, a real, anonym
 - **`previous_application.csv`** — the applicant's prior loan applications with this lender.
 - **`credit_card_balance.csv`** — monthly balance/utilization history on any previous credit cards held with this lender.
 
-The target class is heavily imbalanced: **8.07%** of the 307,511 applications in the training set are associated with a default (`TARGET == 1`), and 91.93% are not — this imbalance is the single most important data characteristic shaping the modeling and evaluation choices throughout this report (see 3.4 and 2.4). Confirmed directly against the raw data (see `pipeline/eda.ipynb`, Section 2), not taken on the roadmap's word.
+The target class is heavily imbalanced: **8.07%** of the 307,511 applications in the training set are associated with a default (`TARGET == 1`), and 91.93% are not — this imbalance is the single most important data characteristic shaping the modeling and evaluation choices throughout this report (see 3.4 and 2.4). Confirmed directly against the raw data (see `notebooks/01_eda_application.ipynb`, Section 2), not taken on the roadmap's word.
 
 ### 3.2 Exploratory Data Analysis (EDA)
 
-Full analysis, code, and plots: `pipeline/eda.ipynb`. Four findings from this pass materially shape later phases:
+Full analysis, code, and plots: `notebooks/01_eda_application.ipynb`. Four findings from this pass materially shape later phases:
 
 **1. Class imbalance (8.07% default) is the defining fact of this dataset** — a model that always predicts "no default" would already look 92% "accurate" while being useless, which is why AUC/precision/recall are used throughout this report instead of accuracy (Section 2.4, 3.4).
 
@@ -97,7 +97,7 @@ Five concrete hypotheses about expected SHAP rankings are recorded in the notebo
 
 The auxiliary tables carry most of the real predictive signal in this dataset — an applicant's own application form is far less informative than their actual credit history and behavior. Feature engineering here means aggregating each auxiliary table to one row per applicant (via group-by + aggregation) and joining onto the core application table.
 
-Implemented in `pipeline/features.py`, adding **52 engineered/aggregated columns** to the 122 raw `application_train` columns (307,511 rows in, 307,511 rows out — every left-join is one-row-per-applicant on both sides, so no row duplication).
+Implemented in `ml/pipeline/features.py`, adding **52 engineered/aggregated columns** to the 122 raw `application_train` columns (307,511 rows in, 307,511 rows out — every left-join is one-row-per-applicant on both sides, so no row duplication).
 
 | Feature group | Source table | Rationale | Example correlation with `TARGET` |
 |---|---|---|---|
@@ -120,7 +120,7 @@ Both models are trained on an 80/20 stratified split of the Phase 4 feature tabl
 | Logistic Regression (baseline) | 0.7647 | 0.169 | 0.693 | 0.272 |
 | **LightGBM** | **0.7793** | 0.189 | 0.661 | 0.293 |
 
-LightGBM outperforms the logistic regression baseline on AUC by a meaningful margin (+0.015) — consistent with the expectation from Section 3.4's model-choice rationale, and already close to the ~0.79–0.80 full-ensemble benchmark the roadmap's reference repos report, from a single untuned LightGBM run on 52 engineered features (Section 3.3) rather than an ensemble. Both runs are tracked in MLflow (`modeling/train.py`, experiment `credit-risk-phase5`, local SQLite backend at `mlflow.db`).
+LightGBM outperforms the logistic regression baseline on AUC by a meaningful margin (+0.015) — consistent with the expectation from Section 3.4's model-choice rationale, and already close to the ~0.79–0.80 full-ensemble benchmark the roadmap's reference repos report, from a single untuned LightGBM run on 52 engineered features (Section 3.3) rather than an ensemble. Both runs are tracked in MLflow (`ml/modeling/train.py`, experiment `credit-risk-phase5`, local SQLite backend at `mlflow.db`).
 
 **A real debugging finding worth recording, not smoothing over:** LightGBM 4.7.0's built-in early-stopping callback was found to select the *worst* validation round (iteration 1 of hundreds, on a validation AUC curve that was monotonically improving) as the "best" one — but only when `scale_pos_weight` is set; removing it alone restored correct behavior. This pointed to a real bug in this LightGBM release's early-stopping direction detection under sample weighting, not a modeling error. The fix implemented in `train.py`: train a generous number of rounds (800) without relying on the automatic callback, read the validation AUC curve directly from `evals_result_`, and manually select the true best iteration (441, AUC 0.7793) before training a second, right-sized model on exactly that many rounds. Worth stating explicitly in an interview: the first LightGBM AUC observed (0.7245, *below* the logistic regression baseline) was wrong for a diagnosable reason, not just "worse" — treating a suspicious result as a bug to investigate, rather than a number to report, is what caught it.
 
@@ -130,14 +130,14 @@ A model's AUC measures how well it *ranks* applicants by risk, but says nothing 
 
 **Methodology:** the calibrator is fit on a dedicated calibration slice (49,202 rows) carved out of the training data — not on the same validation set used to evaluate it, which would make "it's calibrated now" a claim about memorization rather than genuine calibration. The validation set (61,503 rows) used for the numbers below is identical to Phase 5's and was touched by neither the classifier's training nor the calibrator's fitting. Isotonic regression was chosen over Platt (sigmoid) scaling because the calibration slice is large (tens of thousands of rows, enough to avoid overfitting a flexible, non-parametric fit) and there's no reason to assume the `scale_pos_weight`-induced distortion is sigmoid-shaped.
 
-**Results** (`modeling/calibration.py`, MLflow run `lightgbm_calibration`):
+**Results** (`ml/modeling/calibration.py`, MLflow run `lightgbm_calibration`):
 
 | | Raw LightGBM | Isotonic-calibrated |
 |---|---|---|
 | AUC | 0.7758 | 0.7751 |
 | Brier score | 0.165 | **0.067** |
 
-![Reliability diagram comparing raw LightGBM output against isotonic-calibrated output on the held-out validation set, against the diagonal representing perfect calibration](modeling/figures/calibration_reliability_diagram.png)
+![Reliability diagram comparing raw LightGBM output against isotonic-calibrated output on the held-out validation set, against the diagonal representing perfect calibration](reports/figures/calibration_reliability_diagram.png)
 
 The reliability diagram above shows the raw model (blue) badly over-predicting risk across the entire range — at a mean predicted probability of ~0.6, the true observed default rate is only ~0.15, and the gap between the blue curve and the dotted diagonal (perfect calibration) widens as predicted probability increases. This is a direct, visible confirmation of the `scale_pos_weight` distortion predicted before this phase was built, not a coincidental finding. The isotonic-calibrated curve (orange) tracks the diagonal closely across its full range, which is why the Brier score improvement (0.165 → 0.067) is trustworthy rather than an artifact of a lucky bin or two. AUC changed by only -0.0007 between the two curves (isotonic regression can only ever preserve or flatten the model's ranking via ties — never reverse it — so this negligible drop, not an improvement, is the theoretically expected outcome, and its size confirms the ranking was essentially undisturbed by calibration).
 
@@ -153,17 +153,17 @@ Two views are produced: a **global** summary plot (which features matter most ac
 
 **A seam worth being explicit about:** SHAP explains the raw LightGBM model's output (log-odds toward default), not the isotonic-calibrated probability from Section 3.5. Isotonic calibration is a non-parametric step function wrapped *around* the tree model's output — it has no tree structure for `TreeExplainer` to attach to. So these explanations answer "why did the tree model score this applicant as risky"; calibration is a separate step afterward that only rescales the resulting probability, without changing which features drove the decision.
 
-**Global results** (`explain/shap_analysis.py`, full validation set):
+**Global results** (`ml/explain/shap_analysis.py`, full validation set):
 
-![SHAP global feature importance beeswarm plot for the validation set, showing EXT_SOURCE_MEAN as the dominant feature by a wide margin](explain/figures/shap_global_summary.png)
+![SHAP global feature importance beeswarm plot for the validation set, showing EXT_SOURCE_MEAN as the dominant feature by a wide margin](reports/figures/shap_global_summary.png)
 
 `EXT_SOURCE_MEAN` (the Section 3.3 consensus feature) dominates by a wide margin — mean |SHAP| of 0.52, more than 3x the next feature (`ORGANIZATION_TYPE` at 0.15) — and low values of it (blue) push toward higher predicted risk, exactly the direction expected. This directly confirms the Section 3.2 EDA hypothesis that `EXT_SOURCE_MEAN` would rank as a top feature, and confirms the feature-engineering decision in Section 3.3 was the right call, not just a correlation-table artifact. `CREDIT_ANNUITY_RATIO` and `PREV_APPLICATION_CREDIT_RATIO_MEAN` — both engineered ratios, not raw columns — also rank in the top 10, reinforcing the same pattern from Section 3.3: derived ratios outperform the raw values they're built from.
 
 **Local example** — a single high-risk applicant (SK_ID_CURR 218614, calibrated probability of default 0.30, comfortably inside the top-10% risk band used to select examples for this phase — see the code for why that band, not the real business cutoff, was used):
 
-![SHAP waterfall plot for one high-risk applicant, showing EXT_SOURCE_MEAN contributing +1.41 to the log-odds of default, followed by EXT_SOURCE_3 (+0.27) and CREDIT_ANNUITY_RATIO (+0.20)](explain/figures/shap_local_example.png)
+![SHAP waterfall plot for one high-risk applicant, showing EXT_SOURCE_MEAN contributing +1.41 to the log-odds of default, followed by EXT_SOURCE_3 (+0.27) and CREDIT_ANNUITY_RATIO (+0.20)](reports/figures/shap_local_example.png)
 
-For this applicant, a low `EXT_SOURCE_MEAN` (0.151) alone contributes +1.41 to the log-odds of default — by far the largest single factor — followed by a low `EXT_SOURCE_3` (+0.27) and a high `CREDIT_ANNUITY_RATIO` of 12.5 (+0.20, meaning the loan spans roughly 12.5 annuity payments). The top-3 positive-contribution factors for every applicant in the top 10% of calibrated risk (6,679 applicants) are saved to `explain/output/top_shap_factors.json`, each with the applicant's actual feature value alongside the SHAP contribution — this is the direct input to Phase 8's Adverse Action generator below. (Note on terminology: "top-3 factors" here means the three largest *positive* SHAP values — i.e., the factors that most pushed the prediction toward default — not the three most negative numbers, which would mean the opposite.)
+For this applicant, a low `EXT_SOURCE_MEAN` (0.151) alone contributes +1.41 to the log-odds of default — by far the largest single factor — followed by a low `EXT_SOURCE_3` (+0.27) and a high `CREDIT_ANNUITY_RATIO` of 12.5 (+0.20, meaning the loan spans roughly 12.5 annuity payments). The top-3 positive-contribution factors for every applicant in the top 10% of calibrated risk (6,679 applicants) are saved to `reports/top_shap_factors.json`, each with the applicant's actual feature value alongside the SHAP contribution — this is the direct input to Phase 8's Adverse Action generator below. (Note on terminology: "top-3 factors" here means the three largest *positive* SHAP values — i.e., the factors that most pushed the prediction toward default — not the three most negative numbers, which would mean the opposite.)
 
 ### 4.2 Adverse Action Notice Generator
 
@@ -290,21 +290,21 @@ Phase 5 model comparison, `credit-risk-phase5` experiment (`lightgbm` vs. `logis
 
 **Parameters** — confirms what each model was actually trained with: LightGBM's `n_estimators=441` is the manually-corrected true best iteration from Section 3.4's early-stopping bug fix, not a default or the buggy automatic value; `scale_pos_weight=11.387` and `class_weight=balanced` are the two models' respective class-imbalance corrections.
 
-![MLflow Parameters comparison: LightGBM (n_estimators=441, scale_pos_weight=11.387, learning_rate=0.05, num_leaves=31) vs. logistic regression (class_weight=balanced), both trained on 172 raw features](modeling/figures/mlflow_phase5_parameters.png)
+![MLflow Parameters comparison: LightGBM (n_estimators=441, scale_pos_weight=11.387, learning_rate=0.05, num_leaves=31) vs. logistic regression (class_weight=balanced), both trained on 172 raw features](reports/figures/mlflow_phase5_parameters.png)
 
 **Metrics** — the same AUC/precision/recall/F1 numbers reported in Section 3.4's table, direct from MLflow rather than retyped by hand.
 
-![MLflow Metrics comparison: LightGBM AUC 0.779 vs. logistic regression AUC 0.765, with F1, precision, and recall for both](modeling/figures/mlflow_phase5_metrics.png)
+![MLflow Metrics comparison: LightGBM AUC 0.779 vs. logistic regression AUC 0.765, with F1, precision, and recall for both](reports/figures/mlflow_phase5_metrics.png)
 
 Phase 6 calibration run, same experiment (`lightgbm_calibration`).
 
 **Parameters** — `n_fit_rows` (196,806) and `n_calibration_rows` (49,202) confirm the dedicated calibration slice described in Section 3.5's methodology was actually used, not the full training set or the validation set.
 
-![MLflow Parameters for the lightgbm_calibration run: model=LightGBM, calibration_method=isotonic, n_fit_rows=196806, n_calibration_rows=49202](modeling/figures/mlflow_phase6_calibration_parameters.png)
+![MLflow Parameters for the lightgbm_calibration run: model=LightGBM, calibration_method=isotonic, n_fit_rows=196806, n_calibration_rows=49202](reports/figures/mlflow_phase6_calibration_parameters.png)
 
 **Metrics** — the same before/after numbers reported in Section 3.5: AUC essentially unchanged (0.7758 raw vs. 0.7751 calibrated), Brier score improved by more than half (0.165 raw vs. 0.067 calibrated).
 
-![MLflow Metrics for the lightgbm_calibration run: auc_raw=0.7758, auc_calibrated=0.7751, brier_raw=0.1651, brier_calibrated=0.0666](modeling/figures/mlflow_phase6_calibration_metrics.png)
+![MLflow Metrics for the lightgbm_calibration run: auc_raw=0.7758, auc_calibrated=0.7751, brier_raw=0.1651, brier_calibrated=0.0666](reports/figures/mlflow_phase6_calibration_metrics.png)
 
 ### Appendix C: Additional Visualizations
 [Any supporting plots not included in the main sections]

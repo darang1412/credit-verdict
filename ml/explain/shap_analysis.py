@@ -7,9 +7,9 @@ importance heuristic:
 
   - GLOBAL: which features matter most across the whole validation set
     (a beeswarm/summary plot). This is checked against the hypotheses
-    written down in Phase 3's EDA (pipeline/eda.ipynb), before any model
-    existed - agreement is a sanity check, disagreement is worth explaining,
-    not silently accepting.
+    written down in Phase 3's EDA (notebooks/01_eda_application.ipynb),
+    before any model existed - agreement is a sanity check, disagreement is
+    worth explaining, not silently accepting.
   - LOCAL: for individual high-risk applicants, which specific features
     pushed THIS prediction toward default, and by how much. The top-3 such
     factors per high-risk applicant are saved to disk for Phase 8's Adverse
@@ -44,15 +44,15 @@ import shap
 from sklearn.isotonic import IsotonicRegression
 from sklearn.model_selection import train_test_split
 
-# train.py lives in modeling/, a sibling directory of this script (explain/) -
-# Python only auto-adds a script's OWN directory to the import path, so
-# modeling/ has to be added explicitly to reuse train.py's load_features and
-# split_data rather than duplicating them a second time.
+# train.py lives in ml/modeling/, a sibling directory of this script
+# (ml/explain/) - Python only auto-adds a script's OWN directory to the
+# import path, so ml/modeling/ has to be added explicitly to reuse train.py's
+# load_features and split_data rather than duplicating them a second time.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "modeling"))
 from train import BASE_DIR, load_features, split_data  # noqa: E402
 
-FIGURES_DIR = BASE_DIR / "explain" / "figures"
-OUTPUT_DIR = BASE_DIR / "explain" / "output"
+FIGURES_DIR = BASE_DIR / "reports" / "figures"
+OUTPUT_DIR = BASE_DIR / "reports"
 
 # Same finalized hyperparameters as Phase 5/6's LightGBM (see train.py and
 # calibration.py). Reconstructed here by retraining deterministically

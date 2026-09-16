@@ -41,11 +41,12 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 # Resolved relative to this file, not the current working directory - the
-# same class of bug bit both pipeline/features.py and eda.ipynb earlier in
-# this project, so every path here is anchored to the repo root instead of
-# assuming a particular cwd.
-BASE_DIR = Path(__file__).resolve().parent.parent
-FEATURES_PATH = BASE_DIR / "pipeline" / "data" / "processed" / "features.parquet"
+# same class of bug bit both ml/pipeline/features.py and the EDA notebook
+# earlier in this project, so every path here is anchored to the repo root
+# instead of assuming a particular cwd. This file lives at
+# <repo_root>/ml/modeling/train.py, three levels below the repo root.
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+FEATURES_PATH = BASE_DIR / "data" / "processed" / "features.parquet"
 # MLflow 3.x puts the plain filesystem store ("./mlruns") into maintenance
 # mode and refuses to use it for new tracking - a SQLite backend is the
 # supported local option instead, still fully local/file-based, just backed
