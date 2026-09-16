@@ -18,7 +18,7 @@
 - [Key Features](#key-features)
 - [System Components](#system-components)
 - [Responsible AI Components](#responsible-ai-components)
-- [Why the Chatbot and Dashboard Are Separate](#why-the-chatbot-and-dashboard-are-separate)
+- [Why the Applicant Tool and Dashboard Are Separate](#why-the-applicant-tool-and-dashboard-are-separate)
 - [Quick Start](#quick-start)
 - [Project Structure](#project-structure)
 - [Testing](#testing)
@@ -49,7 +49,7 @@ Credit Verdict addresses both halves of that problem in one system:
 - [x] Phase 6 — Calibration
 - [x] Phase 7 — SHAP explainability
 - [ ] Phase 8 — Multi-agent RAG / Adverse Action Notice generation
-- [ ] Phase 9 — Full-stack build (FastAPI, chatbot, Streamlit dev view)
+- [ ] Phase 9 — Full-stack build (FastAPI, applicant-input UI, Streamlit dev view)
 - [ ] Phase 10 — Business case, dashboard, monitoring, README polish
 
 ## Results
@@ -67,7 +67,7 @@ AUC alone isn't the headline metric here — see [`notebooks/model_evaluation.ip
 
 ## LangGraph Multi-Agent Flow
 
-This section outlines the agent routing behind the Adverse Action chatbot.
+This section outlines the agent routing behind the Adverse Action follow-up Q&A — triggered from preset question buttons in the applicant UI (see [Technical Implementation Details](#technical-implementation-details)), not an open-ended chat box.
 
 ### Agent Definitions
 
@@ -102,7 +102,8 @@ Retrieval is only invoked when grounding is actually needed for the answer — S
 
 ### Technical Implementation Details
 
-- **Scoped demo input**: the chatbot answers questions about pre-validated Phase 8 test-set applicants, not free-form live input, to keep the first version's failure surface bounded and testable.
+- **Scoped demo input**: the system answers questions about pre-validated Phase 8 test-set applicants, not free-form live input, to keep the first version's failure surface bounded and testable.
+- **Preset-question interface**: the applicant UI surfaces fixed prompts ("Why was I declined?", "What can I do to improve?", "Show me the cited rule") rather than an open text box. Same multi-agent routing underneath, deliberately bounded input surface on top — an open-ended chat box is left as future work (see [Future Development](#future-development)).
 - **Faithfulness-gated responses**: `COMPLIANCE_RAG_AGENT` output is checked against a RAGAS faithfulness threshold before `REPORTING_AGENT` is allowed to use it.
 - **Model backend**: Azure OpenAI for production/demo runs; Groq (free tier) during local development and iteration.
 
@@ -122,9 +123,9 @@ Retrieval is only invoked when grounding is actually needed for the answer — S
 
 ## Frontend Technologies
 
-- **React** – Applicant-facing chat interface and dashboard views.
+- **React** – Single-page applicant-input form (feature entry or a preset test applicant) with a rich result view — risk-score gauge, SHAP waterfall chart, generated Adverse Action notice — plus a preset-question follow-up panel and a dashboard link.
 - **Tailwind CSS** – Styling.
-- **Power BI** – Business/risk-team dashboard (published via "Publish to Web," kept separate from the applicant chatbot — see below).
+- **Power BI** – Business/risk-team dashboard (published via "Publish to Web," kept separate from the applicant-facing tool — see below).
 
 ## Development Tools
 
@@ -153,13 +154,17 @@ Credit Verdict addresses a real, named compliance problem, not a hypothetical on
 - Plain-English denial explanations grounded in real ECOA §1002.9 and OSFI E-23 text
 - RAGAS faithfulness check on every generated explanation before it's shown
 
-### Conversational Decision Explanation
-- Multi-agent chatbot answering "why" and reasonable "what now" follow-ups
+### Try-It-Yourself Scoring Form
+- A single React form: enter (or pick a preset test) applicant features and get back a risk score, SHAP explanation, and Adverse Action notice if declined — the direct "input → score" surface a recruiter can try in 30 seconds
+- Distinct from both the Power BI dashboard (portfolio-level) and the follow-up Q&A below — this is the one-shot scoring flow, and the source footage for the hero GIF
+
+### Explainable Follow-Up Q&A
+- Preset question buttons ("Why was I declined?", "What can I do to improve?", "Show me the cited rule") — not an open-ended chat box — trigger the same multi-agent LangGraph pipeline and render answers in an expanding citation panel
 - Scoped to validated test applicants for the first version — see [Technical Implementation Details](#technical-implementation-details)
 
-### Business Dashboard (Separate from the Chatbot)
-- Risk segmentation, cutoff tradeoff analysis, portfolio expected loss
-- Deliberately kept as a separate surface from the applicant-facing chatbot — see below
+### Business Dashboard (Separate from the Applicant Tool)
+- Risk segmentation, cutoff tradeoff analysis (grounded in an explicit cost matrix — see the report's Section 5.2), portfolio expected loss
+- Deliberately kept as a separate surface from the applicant-facing tool — see below
 
 ### Transparent AI Reasoning
 - Every pipeline step (SHAP computation → retrieval → generation → faithfulness check) is logged
@@ -176,7 +181,7 @@ The system follows a modular, multi-agent design pattern:
 - **Assistant Agent** — general conversation handling
 
 ### Manager Layer
-- **Chatbot Orchestrator** — LangGraph state machine; selection and termination logic
+- **Follow-Up Q&A Orchestrator** — LangGraph state machine; selection and termination logic
 
 ### Plugin/Module Layer
 - **SHAP module** — wraps the Phase 7 explainer
@@ -188,7 +193,7 @@ The system follows a modular, multi-agent design pattern:
 ### API & Interface Layer
 - **FastAPI application** — REST endpoints for scoring, explanation, chat
 - **Streamlit interface** — developer debug view
-- **React application** — applicant-facing chat + business dashboard link
+- **React application** — applicant-input form + result view + preset-question follow-up panel, plus business dashboard link
 
 ## Responsible AI Components
 
@@ -198,16 +203,18 @@ Credit Verdict incorporates several responsible-AI practices to ensure transpare
 - **Structured Agent Reasoning** — `EXPLANATION_AGENT`'s deterministic facts are kept separate from `COMPLIANCE_RAG_AGENT`'s grounded phrasing; intermediate steps are logged and auditable, not collapsed into a single opaque LLM call.
 - **Decision Criteria Transparency** — calibration methodology, cutoff thresholds, and their business tradeoffs are documented in `CreditRisk_Project_Report.md`, not just implied by the model.
 - **Citation Faithfulness Auditing** — every generated explanation is checked against its retrieved source before being shown, the same role RAGAS's faithfulness metric plays that Bing-search citation tracking plays in comparable reference architectures.
-- **Scoped Deployment** — the chatbot only answers on pre-validated test applicants in its first version, a deliberate constraint to keep the system's failure surface known and testable rather than open-ended.
+- **Scoped Deployment** — the applicant tool only answers on pre-validated test applicants in its first version, a deliberate constraint to keep the system's failure surface known and testable rather than open-ended.
 
-## Why the Chatbot and Dashboard Are Separate
+## Why the Applicant Tool and Dashboard Are Separate
 
-This is a deliberate design decision, not an oversight: the chatbot and the Power BI dashboard serve **different audiences with different appropriate data access**.
+This is a deliberate design decision, not an oversight: the applicant-facing tool (scoring form + follow-up Q&A) and the Power BI dashboard serve **different audiences with different appropriate data access**.
 
 - The **dashboard** is for the internal risk/business team — portfolio-wide analytics, aggregate risk segments.
-- The **chatbot** is for an individual applicant — and should only ever see *their own* decision, never portfolio-wide data.
+- The **applicant tool** is for an individual applicant — and should only ever see *their own* decision, never portfolio-wide data.
 
 Merging these into one interface would mean building an access-control problem that doesn't need to exist. Keeping them separate — cross-linked from one landing page — respects that boundary by construction rather than by policy.
+
+Within the applicant tool itself, the same reasoning shaped the choice of preset question buttons over an open-ended chat box for follow-up Q&A (see [Technical Implementation Details](#technical-implementation-details)): a bounded, known set of questions keeps the failure surface testable, versus the much larger surface an open text box would expose in a first version.
 
 ## Quick Start
 
@@ -261,7 +268,7 @@ streamlit run backend/dev_view.py
 ├── reports/                  # Generated figures + SHAP output (reports/figures/, reports/top_shap_factors.json)
 ├── rag/                      # LangGraph agents, corpus builder, Adverse Action generator
 ├── backend/                  # FastAPI app, Streamlit dev view
-├── frontend/                 # React chat interface + dashboard link
+├── frontend/                 # React applicant-input form + result view + preset-question panel + dashboard link
 ├── business/                 # Power BI dashboard assets, business case materials
 ├── assets/                   # Demo GIF / README screenshots
 ├── docs/
@@ -295,6 +302,7 @@ See [`MODEL_CARD.md`](MODEL_CARD.md) for intended use, training data, performanc
 3. Human-in-the-loop review UI for generated Adverse Action notices before they're sent
 4. Tableau mirror of the Power BI dashboard (for roles that specifically screen on Tableau)
 5. Expanded compliance corpus (additional CFPB Circulars, provincial Canadian consumer-protection sources)
+6. An open-ended free-text chat interface — the first version deliberately uses preset question buttons instead, to keep the failure surface bounded and testable (see [Why the Applicant Tool and Dashboard Are Separate](#why-the-applicant-tool-and-dashboard-are-separate))
 
 ## Assumptions
 

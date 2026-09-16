@@ -192,9 +192,20 @@ Applicants are grouped into risk bands based on predicted (calibrated) probabili
 
 ### 5.2 Risk-Return Tradeoff Analysis
 
-The choice of approval cutoff is a business decision, not a purely statistical one: a stricter cutoff reduces expected losses but also rejects some applicants who would have repaid (lost revenue), while a looser cutoff approves more revenue-generating applicants but accepts more expected loss. This table exists to make that tradeoff explicit and let a business stakeholder choose a cutoff deliberately, rather than accepting a default threshold (like 0.5) with no justification.
+The choice of approval cutoff is a business decision, not a purely statistical one: a stricter cutoff reduces expected losses but also rejects some applicants who would have repaid (lost revenue), while a looser cutoff approves more revenue-generating applicants but accepts more expected loss. Rather than picking a cutoff by eye, this section is built on top of an explicit **cost matrix** — the dollar (or stated-assumption) cost of each of the four possible outcomes:
 
-| Cutoff | Approval rate | Expected default rate among approved | Expected loss |
+| Outcome | Meaning | Cost/benefit |
+|---|---|---|
+| True Positive | Correctly declined a defaulter | Loss avoided |
+| False Positive | Wrongly declined a good applicant | Lost revenue / opportunity cost (estimated margin on the foregone loan) |
+| True Negative | Correctly approved a good applicant | Normal profit |
+| False Negative | Approved someone who defaults | Actual dollar loss (average loan size × loss-given-default rate) |
+
+[Fill in with actual assumed dollar values for each cell once available — even rough, explicitly stated assumptions turn threshold selection into a defensible, quantified decision rather than a guess]
+
+With those costs stated, the table below makes the resulting tradeoff explicit and lets a business stakeholder choose a cutoff deliberately, rather than accepting a default threshold (like 0.5) with no justification.
+
+| Cutoff | Approval rate | Expected default rate among approved | Expected loss (using the cost matrix above) |
 |---|---|---|---|
 | [ ] | [ ] | [ ] | [ ] |
 
@@ -202,7 +213,7 @@ The choice of approval cutoff is a business decision, not a purely statistical o
 
 ### 5.3 Financial Impact Projection
 
-This section translates the cutoff analysis above into an illustrative dollar-impact estimate — for example, "at the recommended cutoff, expected portfolio loss decreases by an estimated $X per 1,000 applications relative to a no-model (approve-everyone) baseline, at a cost of an estimated Y fewer approvals." State all assumptions explicitly (average loan size, assumed loss-given-default rate) since this is a directional business estimate, not a precise forecast, and overstating its precision would undercut the credibility of the rest of the report.
+This section translates the cost-matrix-grounded cutoff analysis above into an illustrative dollar-impact estimate — for example, "at the recommended cutoff, expected portfolio loss decreases by an estimated $X per 1,000 applications relative to a no-model (approve-everyone) baseline, at a cost of an estimated Y fewer approvals." State all assumptions explicitly (average loan size, assumed loss-given-default rate — the same ones used in the cost matrix above) since this is a directional business estimate, not a precise forecast, and overstating its precision would undercut the credibility of the rest of the report.
 
 [Fill in once cutoff analysis in 5.2 is complete]
 
@@ -226,7 +237,7 @@ This roadmap is itself worth including in the report, since it demonstrates an u
 
 The system is organized as a linear pipeline with a branch for the compliance layer:
 
-**Data pipeline** (multi-table ingestion and feature engineering) → **Model** (LightGBM, compared against logistic regression baseline) → **Calibration** (isotonic/Platt correction on top of raw model output) → **SHAP** (global and per-prediction local explanations) → for declined applicants specifically → **RAG generator** (retrieval over the compliance corpus in pgvector, grounded generation, RAGAS faithfulness check) → **FastAPI** (serving layer exposing all of the above) → **Power BI dashboard** (business-facing view of risk segments and cutoff tradeoffs, reading from the same underlying data).
+**Data pipeline** (multi-table ingestion and feature engineering) → **Model** (LightGBM, compared against logistic regression baseline) → **Calibration** (isotonic/Platt correction on top of raw model output) → **SHAP** (global and per-prediction local explanations) → for declined applicants specifically → **RAG generator** (retrieval over the compliance corpus in pgvector, grounded generation, RAGAS faithfulness check) → **FastAPI** (serving layer exposing all of the above), which in turn feeds two separate, deliberately unmerged frontends (see Section 7 and the README's "Why the Applicant Tool and Dashboard Are Separate"): an **applicant-input frontend** (single-page React form → risk-score gauge, SHAP waterfall chart, and Adverse Action notice, plus a preset-question panel that re-invokes the RAG generator's underlying multi-agent pipeline for follow-up questions) and the **Power BI dashboard** (business-facing view of risk segments and cutoff tradeoffs, reading from the same underlying data).
 
 [Insert an actual architecture diagram once the system is built — a simple boxes-and-arrows diagram following the flow above is sufficient]
 
@@ -237,6 +248,7 @@ The system is organized as a linear pipeline with a branch for the compliance la
 | `/predict` | POST | `{"applicant_id": 1234, "features": {...}}` | `{"probability_of_default": 0.12, "calibrated": true, "recommendation": "approve"}` |
 | `/explain/{id}` | GET | Applicant ID | `{"top_factors": [{"feature": "DEBT_TO_INCOME", "shap_value": 0.34}, ...], "global_importance_url": "..."}` |
 | `/adverse-action/{id}` | GET | Applicant ID | `{"reasons": [...], "retrieved_sources": [...], "faithfulness_score": 0.87}` |
+| `/chat` | POST | `{"applicant_id": 1234, "preset_question": "what_can_i_do"}` | `{"answer": "...", "retrieved_sources": [...], "faithfulness_score": 0.87}` — invoked by the applicant frontend's preset-question panel (Section 6.1), not an open-ended chat box |
 | `/health` | GET | — | `{"status": "ok"}` |
 
 ### 6.3 Deployment (Docker + Azure)
