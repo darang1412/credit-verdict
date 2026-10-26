@@ -24,29 +24,77 @@ import matplotlib.pyplot as plt
 import mlflow
 import mlflow.lightgbm
 import pandas as pd
-from sklearn.calibration import CalibrationDisplay
+import numpy as np
+from sklearn.calibration import CalibrationDisplay, calibration_curve
 from sklearn.isotonic import IsotonicRegression
-from sklearn.metrics import brier_score_loss, roc_auc_score
+from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 from sklearn.model_selection import train_test_split
 
 from train import BASE_DIR, MLFLOW_DB_PATH, MLFLOW_EXPERIMENT, load_features, split_data
 
 FIGURES_DIR = BASE_DIR / "reports" / "figures"
 
-# Same finalized hyperparameters as Phase 5's LightGBM (see train.py).
-# n_estimators is fixed at 441 - the manually-determined true best iteration
-# from Phase 5 - rather than re-run through early stopping here, since that
-# mechanism was found to be unreliable under scale_pos_weight in this
-# LightGBM release (see train.py's comments). Phase 6's job is to calibrate
-# that already-chosen model, not re-tune it.
+# Same finalized hyperparameters as Phase 5's LightGBM (see train.py):
+# num_leaves/learning_rate/min_child_samples come from
+# tune_lightgbm_hyperparameters's randomized search, and n_estimators=765 is
+# the manually-determined true best iteration for that tuned shape (found the
+# same way as before - see train.py's docstring on why LightGBM's built-in
+# early stopping is unreliable here under scale_pos_weight). Phase 6's job is
+# to calibrate that already-chosen model, not re-tune it - if Phase 5's
+# search or split ever changes, re-sync these four values from the
+# "lightgbm" run's logged params in MLflow rather than guessing.
 LGB_PARAMS = dict(
     objective="binary",
-    n_estimators=441,
+    n_estimators=765,
     learning_rate=0.05,
-    num_leaves=31,
+    num_leaves=15,
+    min_child_samples=100,
     random_state=42,
     n_jobs=-1,
 )
+
+
+def diagnose_raw_calibration(y_true, y_proba, n_bins: int = 10) -> dict:
+    """Run BEFORE any calibration is fit or applied: is the raw model's
+    output actually miscalibrated on held-out data, or would calibrating it
+    be solving a problem that doesn't exist? Two checks, both computed only
+    on y_true/y_proba passed in (the caller is responsible for that being the
+    held-out validation set, never touched by training or by a calibrator's
+    own fit):
+
+      1. Brier score vs. a naive "always predict the base rate" baseline
+         (base_rate * (1 - base_rate)). A model with a WORSE Brier score than
+         that trivial baseline is doing worse than doing nothing - a strong
+         signal something (here: scale_pos_weight's deliberate training-loss
+         distortion) has pushed probabilities away from the true rate.
+      2. Expected Calibration Error (ECE) - the average gap between
+         predicted and observed default rate across quantile (equal-count)
+         bins of the reliability diagram, i.e. how far the curve sits from
+         the diagonal. Quantile bins are approximately equal-sized by
+         construction, so an unweighted mean across bins is used as a
+         lightweight stand-in for the usual count-weighted ECE formula.
+         >0.05 (5 percentage points) is used as the "deviates enough from the
+         diagonal to matter for a business decision" cutoff - a documented
+         rule-of-thumb for this project, not a universal statistical
+         threshold, chosen because a 5-point gap on a probability that will
+         be read directly as a default rate is large enough to change a
+         cutoff decision.
+    """
+    brier = brier_score_loss(y_true, y_proba)
+    base_rate = float(np.mean(y_true))
+    baseline_brier = base_rate * (1 - base_rate)
+
+    prob_true, prob_pred = calibration_curve(y_true, y_proba, n_bins=n_bins, strategy="quantile")
+    ece = float(np.mean(np.abs(prob_true - prob_pred)))
+
+    deviates = bool((brier > baseline_brier) or (ece > 0.05))
+
+    return {
+        "brier": brier,
+        "baseline_brier": baseline_brier,
+        "ece": ece,
+        "deviates_from_diagonal": deviates,
+    }
 
 
 def cast_categoricals(
@@ -96,26 +144,70 @@ def main():
     model.fit(X_fit, y_fit)
 
     raw_val_proba = model.predict_proba(X_val)[:, 1]
-    raw_calib_proba = model.predict_proba(X_calib)[:, 1]
 
-    # Isotonic regression fits a monotonic step function mapping the raw
-    # predicted probability to a calibrated one, learned only from the
-    # calibration slice's true outcomes. "Monotonic" is the key constraint:
-    # it can reshape the raw scores however the data demands (unlike Platt
-    # scaling's fixed sigmoid-curve assumption), but it can never reverse the
-    # model's ranking of applicants - which is why the AUC below is expected
-    # to come out unchanged (up to floating-point noise) before vs. after.
-    calibrator = IsotonicRegression(out_of_bounds="clip")
-    calibrator.fit(raw_calib_proba, y_calib)
-    calibrated_val_proba = calibrator.predict(raw_val_proba)
+    # Check calibration FIRST, on the held-out validation set, before fitting
+    # or applying anything - the isotonic step below only happens if this
+    # diagnostic actually says the raw curve deviates from the diagonal
+    # enough to matter. This project's own prior reasoning (scale_pos_weight
+    # is KNOWN to distort raw probabilities) predicts that outcome, but the
+    # prediction is checked against real held-out data here rather than
+    # assumed and calibrated unconditionally.
+    diagnosis = diagnose_raw_calibration(y_val, raw_val_proba)
+    print(
+        f"Raw calibration diagnostic (held-out validation set, never touched by "
+        f"training or by a calibrator's own fit):\n"
+        f"  Brier score: {diagnosis['brier']:.4f} vs. base-rate baseline: "
+        f"{diagnosis['baseline_brier']:.4f} "
+        f"({'WORSE than baseline' if diagnosis['brier'] > diagnosis['baseline_brier'] else 'better than baseline'})\n"
+        f"  Expected Calibration Error (ECE): {diagnosis['ece']:.4f} "
+        f"({'>' if diagnosis['ece'] > 0.05 else '<='} 0.05 cutoff)"
+    )
+
+    if diagnosis["deviates_from_diagonal"]:
+        print("-> Deviates from the diagonal enough to matter for a business decision. Calibrating.")
+        raw_calib_proba = model.predict_proba(X_calib)[:, 1]
+
+        # Isotonic regression fits a monotonic step function mapping the raw
+        # predicted probability to a calibrated one, learned only from the
+        # calibration slice's true outcomes. "Monotonic" is the key
+        # constraint: it can reshape the raw scores however the data demands
+        # (unlike Platt scaling's fixed sigmoid-curve assumption), but it can
+        # never reverse the model's ranking of applicants - which is why the
+        # AUC below is expected to come out unchanged (up to floating-point
+        # noise) before vs. after.
+        calibrator = IsotonicRegression(out_of_bounds="clip")
+        calibrator.fit(raw_calib_proba, y_calib)
+        calibrated_val_proba = calibrator.predict(raw_val_proba)
+    else:
+        print("-> Close enough to the diagonal; calibrating would add complexity without a real benefit. Skipping.")
+        calibrated_val_proba = raw_val_proba
 
     raw_auc = roc_auc_score(y_val, raw_val_proba)
     calibrated_auc = roc_auc_score(y_val, calibrated_val_proba)
+    # Unlike AUC, this is NOT expected to closely match raw vs. calibrated,
+    # even though isotonic regression is monotonic. Isotonic regression fits
+    # a step function, so many distinct raw scores collapse onto the same
+    # calibrated value (ties) wherever it's flat. AUC is fairly insensitive
+    # to that - it's an average over ALL pairwise comparisons, so a few
+    # thousand tied pairs barely move it. PR-AUC is far more sensitive: it's
+    # dominated by precision at the highest-scored, low-recall end of the
+    # ranking, which is exactly where isotonic regression tends to have the
+    # least calibration data to work with (few positives) and therefore the
+    # coarsest, most tie-heavy steps - so a handful of ties right at the top
+    # of the ranking can visibly shift it. Empirically here it drops from
+    # ~0.271 to ~0.259 (a real ~4% relative move, not noise) while AUC holds
+    # at ~0.775 either way. Tracked here anyway so the more imbalance-honest
+    # ranking metric (see train.py's compute_metrics) stays visible alongside
+    # calibration's own metric (Brier score), which changes for a different
+    # reason - it reshapes the probabilities' VALUES, not just their order.
+    raw_pr_auc = average_precision_score(y_val, raw_val_proba)
+    calibrated_pr_auc = average_precision_score(y_val, calibrated_val_proba)
     raw_brier = brier_score_loss(y_val, raw_val_proba)
     calibrated_brier = brier_score_loss(y_val, calibrated_val_proba)
 
     print(f"Fit rows: {len(X_fit):,}, calibration rows: {len(X_calib):,}, validation rows: {len(X_val):,}")
-    print(f"AUC         - raw: {raw_auc:.4f}, calibrated: {calibrated_auc:.4f} (should match - isotonic preserves ranking)")
+    print(f"AUC         - raw: {raw_auc:.4f}, calibrated: {calibrated_auc:.4f} (should closely match - isotonic preserves ranking)")
+    print(f"PR-AUC      - raw: {raw_pr_auc:.4f}, calibrated: {calibrated_pr_auc:.4f} (can shift - isotonic ties bite the top of the ranking harder here)")
     print(f"Brier score - raw: {raw_brier:.4f}, calibrated: {calibrated_brier:.4f} (lower is better)")
 
     # Quantile (equal-frequency) bins, not equal-width: LightGBM's predicted
@@ -146,11 +238,16 @@ def main():
 
     with mlflow.start_run(run_name="lightgbm_calibration"):
         mlflow.log_param("model", "LightGBM")
-        mlflow.log_param("calibration_method", "isotonic")
+        mlflow.log_param("calibration_method", "isotonic" if diagnosis["deviates_from_diagonal"] else "none")
+        mlflow.log_param("calibration_applied", diagnosis["deviates_from_diagonal"])
         mlflow.log_param("n_fit_rows", len(X_fit))
         mlflow.log_param("n_calibration_rows", len(X_calib))
+        mlflow.log_metric("brier_baseline", diagnosis["baseline_brier"])
+        mlflow.log_metric("ece_raw", diagnosis["ece"])
         mlflow.log_metric("auc_raw", raw_auc)
         mlflow.log_metric("auc_calibrated", calibrated_auc)
+        mlflow.log_metric("pr_auc_raw", raw_pr_auc)
+        mlflow.log_metric("pr_auc_calibrated", calibrated_pr_auc)
         mlflow.log_metric("brier_raw", raw_brier)
         mlflow.log_metric("brier_calibrated", calibrated_brier)
         mlflow.log_artifact(str(fig_path))

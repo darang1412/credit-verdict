@@ -16,6 +16,42 @@ This also bakes in the concrete action items from the Phase 3 EDA
 Deliberately targets ~50 engineered features (see the roadmap's Phase 4 note:
 "don't chase all 10,000+ features some competition solutions built"), not an
 exhaustive aggregation of every column in every table.
+
+Leakage audit (checked against data/raw/HomeCredit_columns_description.csv
+before writing any aggregation below - the question for every field is "would
+this have been known at the moment THIS application was submitted?"):
+
+  - bureau.csv time fields (DAYS_CREDIT, DAYS_CREDIT_ENDDATE,
+    CREDIT_DAY_OVERDUE) are explicitly documented as measured relative to the
+    current application ("days before current application", "at the time of
+    application") - safe by definition, no audit judgment call needed.
+  - bureau.csv "current"-labelled fields (CREDIT_ACTIVE, AMT_CREDIT_SUM,
+    AMT_CREDIT_SUM_DEBT, AMT_CREDIT_SUM_OVERDUE, CNT_CREDIT_PROLONG) are
+    documented only as "current" / "so far", without an explicit "as of the
+    application date" qualifier - the safety of using these rests on Home
+    Credit's documented process (the bureau report is pulled at application
+    time), not on a per-column guarantee in the data dictionary. This is the
+    standard reading used by every public solution referenced in the
+    roadmap's Phase 3/4 resources, not a distinction unique to this project -
+    flagged here explicitly rather than silently assumed.
+  - previous_application.csv (NAME_CONTRACT_STATUS, DAYS_DECISION,
+    AMT_APPLICATION, AMT_CREDIT, CNT_PAYMENT) covers this same applicant's
+    OTHER, earlier applications - DAYS_DECISION is explicitly "relative to
+    current application", and the table only contains previous applications
+    by construction. Safe.
+  - credit_card_balance.csv (MONTHS_BALANCE, AMT_BALANCE,
+    AMT_CREDIT_LIMIT_ACTUAL, SK_DPD, AMT_DRAWINGS_CURRENT) is keyed on
+    MONTHS_BALANCE, documented as "month of balance relative to application
+    date" (0/negative = at or before it) - every row aggregated here is at or
+    before the application, by the same definition. Safe.
+  - installments_payments.csv and POS_CASH_balance.csv are NOT used in this
+    feature table. Both carry a real look-ahead risk this audit specifically
+    ruled out for v1: e.g. installments_payments.csv's
+    DAYS_ENTRY_PAYMENT/AMT_PAYMENT reflect whether a payment was EVENTUALLY
+    made and how late, which can encode outcome information about a loan that
+    may not have fully resolved until after the current application's
+    decision point. Revisit only with the same field-by-field check applied
+    above, not by assuming the pattern transfers.
 """
 
 from __future__ import annotations
