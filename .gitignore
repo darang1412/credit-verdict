@@ -31,6 +31,12 @@ mlruns/
 mlflow.db
 mlartifacts/
 
+# Power BI: commit the text-based PBIP project in business/powerbi/. Never commit
+# the binary .pbix - in Import mode it embeds the data (raw Home Credit rows +
+# scored applicants). The PBIP's own cache/settings are ignored by
+# business/powerbi/.gitignore.
+*.pbix
+
 # OS
 .DS_Store
 Thumbs.db

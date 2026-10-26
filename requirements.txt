@@ -1,0 +1,15 @@
+# Versions pinned to what the project was built and run with (Python 3.13).
+pandas==2.3.3
+numpy==2.3.5
+pyarrow==21.0.0
+scikit-learn==1.7.2
+lightgbm==4.7.0
+shap==0.52.0
+mlflow==3.16.0
+skops==0.14.0
+matplotlib==3.10.6
+seaborn==0.13.2
+SQLAlchemy==2.0.43
+psycopg2-binary==2.9.11
+ipykernel==7.3.0
+jupyter==1.1.1
