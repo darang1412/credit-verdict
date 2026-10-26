@@ -7,7 +7,14 @@ services:
     image: postgres:16
     env_file: .env
     ports:
-      - "5432:5432"
+      # Host-side port deliberately NOT 5432: something else on the Windows
+      # host already owns 5432 (confirmed via a host-vs-in-container TCP
+      # auth test), silently shadowing Docker's port mapping. 5433 avoids
+      # that collision entirely. The container's OWN internal port stays
+      # 5432 (unaffected) - other services on the Docker network still
+      # reach Postgres at postgres:5432, only host-side tools (Power BI,
+      # local scripts) need :5433.
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
