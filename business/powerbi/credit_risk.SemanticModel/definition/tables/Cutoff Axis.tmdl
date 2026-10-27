@@ -1,0 +1,19 @@
+table 'Cutoff Axis'
+	lineageTag: ac4d91fa-f794-4cba-9d89-0f2b01e4ad8a
+
+	column Value
+		lineageTag: 214b601a-9ef0-48ac-aed2-74a19790d11e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Cutoff Axis' = calculated
+		mode: import
+		source = GENERATESERIES ( 0.01, 0.50, 0.01 )
+
+	annotation PBI_Id = 6ea46d354f9f44489b908f1a1f5544da
+

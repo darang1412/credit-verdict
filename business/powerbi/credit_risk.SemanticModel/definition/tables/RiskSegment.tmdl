@@ -1,0 +1,87 @@
+table RiskSegment
+	lineageTag: 6c941349-6463-41d2-a0ad-a3b0526bb47b
+
+	column sk_id_curr
+		dataType: int64
+		formatString: 0
+		lineageTag: 4903ea22-33e0-44c8-9a39-234ee94d5fac
+		summarizeBy: none
+		sourceColumn: sk_id_curr
+
+		annotation SummarizationSetBy = Automatic
+
+	column predicted_pd
+		dataType: double
+		lineageTag: 58348543-f9a3-481e-a8aa-42879acec4dd
+		summarizeBy: none
+		sourceColumn: predicted_pd
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column calibrated_pd
+		dataType: double
+		lineageTag: ef2e15b3-1b33-41e0-b536-ef56960ace8c
+		summarizeBy: none
+		sourceColumn: calibrated_pd
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column risk_segment
+		dataType: string
+		lineageTag: f468cc8b-6ec8-4695-8fb1-ce5ba118ff98
+		summarizeBy: none
+		sourceColumn: risk_segment
+
+		annotation SummarizationSetBy = Automatic
+
+	column top_shap_factor_1
+		dataType: string
+		lineageTag: 31be24b9-d3c0-4e0c-a2d7-2733f3495945
+		summarizeBy: none
+		sourceColumn: top_shap_factor_1
+
+		annotation SummarizationSetBy = Automatic
+
+	column top_shap_factor_2
+		dataType: string
+		lineageTag: df94ca31-c8cf-47f2-a4bc-c2807acbc76e
+		summarizeBy: none
+		sourceColumn: top_shap_factor_2
+
+		annotation SummarizationSetBy = Automatic
+
+	column top_shap_factor_3
+		dataType: string
+		lineageTag: 3fc2e7e4-f546-4507-8d32-f6195c6d525c
+		summarizeBy: none
+		sourceColumn: top_shap_factor_3
+
+		annotation SummarizationSetBy = Automatic
+
+	column amt_credit
+		dataType: double
+		lineageTag: 071e101f-fe93-4698-b566-7eac8aa4f158
+		summarizeBy: none
+		sourceColumn: amt_credit
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition RiskSegment = m
+		mode: import
+		source =
+				let
+				    Source = #"public scored_applications",
+				    #"Removed Duplicates" = Table.Distinct(Source, {"risk_segment"})
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

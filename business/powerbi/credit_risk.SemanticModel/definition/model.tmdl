@@ -1,0 +1,23 @@
+model Model
+	culture: en-CA
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-CA
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["application_train_powerbi_slice","public scored_applications","RiskSegment"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table application_train_powerbi_slice
+ref table 'public scored_applications'
+ref table RiskSegment
+ref table Cutoff
+ref table 'Cutoff Axis'
+
+ref cultureInfo en-CA
+

@@ -1,0 +1,168 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "cf56ecfdfa8be5844469",
+  "position": {
+    "x": 756.66666666666674,
+    "y": 770,
+    "z": 2000,
+    "height": 283.33333333333337,
+    "width": 1133.3333333333335,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "public scored_applications"
+                    }
+                  },
+                  "Property": "risk_segment"
+                }
+              },
+              "queryRef": "public scored_applications.risk_segment",
+              "nativeQueryRef": "risk_segment"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "public scored_applications"
+                    }
+                  },
+                  "Property": "Scored Applicants"
+                }
+              },
+              "queryRef": "public scored_applications.Scored Applicants",
+              "nativeQueryRef": "Scored Applicants"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "public scored_applications"
+                    }
+                  },
+                  "Property": "Avg Calibrated PD by Segment"
+                }
+              },
+              "queryRef": "public scored_applications.Avg Calibrated PD by Segment",
+              "nativeQueryRef": "Avg Calibrated PD by Segment"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "public scored_applications"
+                    }
+                  },
+                  "Property": "Avg amt_credit"
+                }
+              },
+              "queryRef": "public scored_applications.Avg amt_credit",
+              "nativeQueryRef": "Avg amt_credit"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "public scored_applications"
+                    }
+                  },
+                  "Property": "Share of Expected Loss"
+                }
+              },
+              "queryRef": "public scored_applications.Share of Expected Loss",
+              "nativeQueryRef": "Share of Expected Loss"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "public scored_applications"
+                  }
+                },
+                "Property": "risk_segment"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "15D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "15D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Segment Detail'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "20D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

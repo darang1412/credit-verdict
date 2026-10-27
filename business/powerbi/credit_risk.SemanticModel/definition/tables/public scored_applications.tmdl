@@ -1,0 +1,182 @@
+table 'public scored_applications'
+	lineageTag: 9512dbfb-c737-4b8b-a103-e17c91e5884b
+
+	measure 'Expected Loss' =
+			
+			VAR c = [Cutoff Value]
+			RETURN
+			    SUMX (
+			        FILTER (
+			            'public scored_applications',
+			            'public scored_applications'[calibrated_pd] < c
+			        ),
+			        'public scored_applications'[calibrated_pd]
+			            * 'public scored_applications'[amt_credit]
+			    )
+		lineageTag: 384eeddc-04c7-4613-8479-d2d409a57458
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Approval Rate at Cutoff' =
+			
+			VAR c = [Cutoff Value]
+			RETURN
+			    DIVIDE (
+			        CALCULATE (
+			            COUNTROWS ( 'public scored_applications' ),
+			            'public scored_applications'[calibrated_pd] < c
+			        ),
+			        COUNTROWS ( 'public scored_applications' )
+			    )
+		lineageTag: 3b3443f1-81d0-4bb1-bb10-39be8d1722fc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avg Calibrated PD by Segment' = AVERAGE('public scored_applications'[calibrated_pd])
+		lineageTag: e3bd0466-af5a-45e8-8ef2-d0d3411dd9b4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avg amt_credit' = average('public scored_applications'[amt_credit])
+		lineageTag: 33aa7fe1-596c-448d-b547-b2d11864d8f5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Scored Applicants' = COUNTROWS ( 'public scored_applications')
+		formatString: 0
+		lineageTag: 057f3e4d-dccd-42c3-aeb5-170cec48bcb6
+
+	measure 'Approved Exposure' = ```
+			
+			VAR c = [Cutoff Value]
+			RETURN
+			    CALCULATE (
+			        SUM ( 'public scored_applications'[amt_credit] ),
+			        'public scored_applications'[calibrated_pd] < c
+			    )
+			
+			```
+		lineageTag: bb47aaa3-46c9-40b8-ab82-d6e95f7886ba
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Loss Rate' = ```
+			DIVIDE ( [Expected Loss], [Approved Exposure] )
+			
+			```
+		lineageTag: 219b5335-7fe6-4757-b082-591d479c76c6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Share of Expected Loss' =
+			
+			DIVIDE (
+			    [Expected Loss],
+			    CALCULATE ( [Expected Loss], ALL ( 'public scored_applications'[risk_segment] ) )
+			)
+		lineageTag: 1754adb8-c730-4b18-8544-ca39ce4189a5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column sk_id_curr
+		dataType: int64
+		formatString: 0
+		lineageTag: 92e9d56b-688d-4fff-971d-383c4d412f6a
+		summarizeBy: sum
+		sourceColumn: sk_id_curr
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column predicted_pd
+		dataType: double
+		lineageTag: e694ed9a-535a-4668-9672-e6650c947bff
+		summarizeBy: sum
+		sourceColumn: predicted_pd
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column calibrated_pd
+		dataType: double
+		lineageTag: 4451ce3a-7e2f-4163-b4e4-11ad5d7a3c83
+		summarizeBy: sum
+		sourceColumn: calibrated_pd
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column risk_segment
+		dataType: string
+		lineageTag: 24855e13-cd36-4249-8877-5859c0214f3e
+		summarizeBy: none
+		sourceColumn: risk_segment
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column top_shap_factor_1
+		dataType: string
+		lineageTag: d970120b-876c-41b3-9865-d79ace951a67
+		summarizeBy: none
+		sourceColumn: top_shap_factor_1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column top_shap_factor_2
+		dataType: string
+		lineageTag: 200680aa-9615-4157-981c-f2bd7bcef647
+		summarizeBy: none
+		sourceColumn: top_shap_factor_2
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column top_shap_factor_3
+		dataType: string
+		lineageTag: d951dee6-f542-4796-a08a-44354418bf9e
+		summarizeBy: none
+		sourceColumn: top_shap_factor_3
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column amt_credit
+		dataType: double
+		lineageTag: a08d6910-a992-4bd6-b41c-f908c1854a6b
+		summarizeBy: sum
+		sourceColumn: amt_credit
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'public scored_applications' = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("127.0.0.1:5433", "credit_risk"),
+				    public_scored_applications = Source{[Schema="public",Item="scored_applications"]}[Data]
+				in
+				    public_scored_applications
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

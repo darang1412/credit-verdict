@@ -1,0 +1,173 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "54968c1c6aab0997c51a",
+  "position": {
+    "x": 874.56147787867292,
+    "y": 411.235804645144,
+    "z": 1000,
+    "height": 345.43807590192097,
+    "width": 934.8760625599607,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "application_train_powerbi_slice"
+                    }
+                  },
+                  "Property": "RiskBand"
+                }
+              },
+              "queryRef": "application_train_powerbi_slice.RiskBand",
+              "nativeQueryRef": "RiskBand"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "application_train_powerbi_slice"
+                    }
+                  },
+                  "Property": "Applicant_count"
+                }
+              },
+              "queryRef": "application_train_powerbi_slice.Applicant_count",
+              "nativeQueryRef": "Applicant_count"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "application_train_powerbi_slice"
+                    }
+                  },
+                  "Property": "Avg Credit Amount"
+                }
+              },
+              "queryRef": "application_train_powerbi_slice.Avg Credit Amount",
+              "nativeQueryRef": "Avg Credit Amount",
+              "format": "\\$#,0;-\\$#,0;\\$#,0"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "application_train_powerbi_slice"
+                    }
+                  },
+                  "Property": "Default Rate by Band"
+                }
+              },
+              "queryRef": "application_train_powerbi_slice.Default Rate by Band",
+              "nativeQueryRef": "Default Rate by Band",
+              "format": "0.0%;-0.0%;0.0%"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "columnHeaders": [
+        {
+          "properties": {
+            "columnAdjustment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'growToFit'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "18D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "20D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Band detail'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "25D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "shadowSpread": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

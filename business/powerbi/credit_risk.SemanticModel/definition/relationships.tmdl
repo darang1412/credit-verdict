@@ -1,0 +1,4 @@
+relationship 9e63a025-b537-8ca1-42a1-7a1e0b0cd51b
+	fromColumn: 'public scored_applications'.risk_segment
+	toColumn: RiskSegment.risk_segment
+

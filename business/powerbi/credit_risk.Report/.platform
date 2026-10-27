@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "credit_risk"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "82022372-ca60-454d-94f5-771ab9f4ea2c"
+  }
+}

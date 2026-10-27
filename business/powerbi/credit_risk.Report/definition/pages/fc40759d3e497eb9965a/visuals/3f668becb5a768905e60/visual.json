@@ -1,0 +1,43 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "3f668becb5a768905e60",
+  "position": {
+    "x": 963.04347826086951,
+    "y": 193.47826086956522,
+    "z": 11002,
+    "height": 123.91304347826086,
+    "width": 891.30434782608688,
+    "tabOrder": 11002
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Takeaway: The model splits applicants into segments with predicted default of 2%, 5% and 17%, a much wider range than loan size alone gives.",
+                    "textStyle": {
+                      "fontSize": "20pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

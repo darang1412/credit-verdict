@@ -1,0 +1,1447 @@
+table application_train_powerbi_slice
+	lineageTag: 2dc39e36-d8d8-467d-aa78-4bb83d2cad3f
+
+	measure 'Default Rate' = DIVIDE(SUM(application_train_powerbi_slice[TARGET]), COUNTROWS(application_train_powerbi_slice))
+		lineageTag: 41ad0b63-2fde-40b6-bcba-d245dc26269d
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avg Credit Amount' = AVERAGE(application_train_powerbi_slice[AMT_CREDIT])
+		lineageTag: 6752c95b-602c-4173-84ff-e652c01bac97
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Default Rate by Band' = CALCULATE([Default Rate], ALLEXCEPT(application_train_powerbi_slice, application_train_powerbi_slice[RiskBand]))
+		lineageTag: 22d53888-0ee3-49c1-a1a3-6028e1a830fb
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Applicant_count = COUNTROWS(application_train_powerbi_slice)
+		formatString: 0
+		lineageTag: 5b8623a6-f77d-4d4b-8c63-aa0f4eab44e8
+
+		changedProperty = IsHidden
+
+	column SK_ID_CURR
+		dataType: int64
+		formatString: 0
+		lineageTag: 7db2d8a5-c5ef-4e5d-989a-e2f1175b0668
+		summarizeBy: sum
+		sourceColumn: SK_ID_CURR
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TARGET
+		dataType: int64
+		formatString: 0
+		lineageTag: 984a9ec8-5c32-4984-9c51-a0a378fc5a87
+		summarizeBy: sum
+		sourceColumn: TARGET
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column NAME_CONTRACT_TYPE
+		dataType: string
+		lineageTag: 10ddc067-644e-43ae-b756-1436dbeddf42
+		summarizeBy: none
+		sourceColumn: NAME_CONTRACT_TYPE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column CODE_GENDER
+		dataType: string
+		lineageTag: 2045b333-726b-41e7-b2ba-f25ce9cfcd67
+		summarizeBy: none
+		sourceColumn: CODE_GENDER
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_OWN_CAR
+		dataType: string
+		lineageTag: da96ec80-c415-432d-a6be-a1fab605bb6a
+		summarizeBy: none
+		sourceColumn: FLAG_OWN_CAR
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_OWN_REALTY
+		dataType: string
+		lineageTag: f1a07c38-d2c4-4367-a3a6-6f7d0674bfdd
+		summarizeBy: none
+		sourceColumn: FLAG_OWN_REALTY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column CNT_CHILDREN
+		dataType: int64
+		formatString: 0
+		lineageTag: 858841e5-f3cf-4e33-948e-18691b20b40e
+		summarizeBy: sum
+		sourceColumn: CNT_CHILDREN
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AMT_INCOME_TOTAL
+		dataType: int64
+		formatString: 0
+		lineageTag: f7e31f66-0485-44ce-97c4-db0626a1e85b
+		summarizeBy: sum
+		sourceColumn: AMT_INCOME_TOTAL
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AMT_CREDIT
+		dataType: double
+		lineageTag: 0f87af20-f63c-4e3b-bc6a-32f2f966da44
+		summarizeBy: sum
+		sourceColumn: AMT_CREDIT
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column AMT_ANNUITY
+		dataType: double
+		lineageTag: ea97801a-f1db-4934-80f6-f04473e926fb
+		summarizeBy: sum
+		sourceColumn: AMT_ANNUITY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column AMT_GOODS_PRICE
+		dataType: double
+		lineageTag: 257b6dfa-18e1-46db-b483-a9d42074c3f7
+		summarizeBy: sum
+		sourceColumn: AMT_GOODS_PRICE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column NAME_TYPE_SUITE
+		dataType: string
+		lineageTag: 6e208619-063c-4cd3-8fa9-4d0cc1563760
+		summarizeBy: none
+		sourceColumn: NAME_TYPE_SUITE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column NAME_INCOME_TYPE
+		dataType: string
+		lineageTag: 85c87401-4bb5-4c98-b018-8d42b0b2f64b
+		summarizeBy: none
+		sourceColumn: NAME_INCOME_TYPE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column NAME_EDUCATION_TYPE
+		dataType: string
+		lineageTag: 0482aa70-71b2-4a95-a2df-10dc1212ecb0
+		summarizeBy: none
+		sourceColumn: NAME_EDUCATION_TYPE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column NAME_FAMILY_STATUS
+		dataType: string
+		lineageTag: 2f54efbd-00fe-4121-ab3e-b97458d2f445
+		summarizeBy: none
+		sourceColumn: NAME_FAMILY_STATUS
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column NAME_HOUSING_TYPE
+		dataType: string
+		lineageTag: e0a7927c-93c5-4fba-8dfd-91fc7780e4bd
+		summarizeBy: none
+		sourceColumn: NAME_HOUSING_TYPE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column REGION_POPULATION_RELATIVE
+		dataType: double
+		lineageTag: fca887b6-4310-48f7-9cc2-784a5dcd2936
+		summarizeBy: sum
+		sourceColumn: REGION_POPULATION_RELATIVE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DAYS_BIRTH
+		dataType: int64
+		formatString: 0
+		lineageTag: 5ca839b0-901d-4822-8d4d-7f2ae0a98bcc
+		summarizeBy: sum
+		sourceColumn: DAYS_BIRTH
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DAYS_EMPLOYED
+		dataType: int64
+		formatString: 0
+		lineageTag: 85ed090e-da56-4afc-becd-cb295b8d47fd
+		summarizeBy: sum
+		sourceColumn: DAYS_EMPLOYED
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DAYS_REGISTRATION
+		dataType: int64
+		formatString: 0
+		lineageTag: 1590d9e9-6bbb-4acc-9736-c0461ac39156
+		summarizeBy: sum
+		sourceColumn: DAYS_REGISTRATION
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DAYS_ID_PUBLISH
+		dataType: int64
+		formatString: 0
+		lineageTag: 7b2b2422-0492-4981-a239-e438fc5b6e7d
+		summarizeBy: sum
+		sourceColumn: DAYS_ID_PUBLISH
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column OWN_CAR_AGE
+		dataType: int64
+		formatString: 0
+		lineageTag: fca4a66c-ea47-4f35-95d0-e416f7b87e11
+		summarizeBy: sum
+		sourceColumn: OWN_CAR_AGE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_MOBIL
+		dataType: int64
+		formatString: 0
+		lineageTag: ca3dc48a-d8a1-47af-9d7e-a09ade08a95d
+		summarizeBy: sum
+		sourceColumn: FLAG_MOBIL
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_EMP_PHONE
+		dataType: int64
+		formatString: 0
+		lineageTag: 32b5172e-e9ce-4e7a-bbd3-1c274525ff35
+		summarizeBy: sum
+		sourceColumn: FLAG_EMP_PHONE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_WORK_PHONE
+		dataType: int64
+		formatString: 0
+		lineageTag: c715aa84-1a3b-4495-ad02-3dbe096184c0
+		summarizeBy: sum
+		sourceColumn: FLAG_WORK_PHONE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_CONT_MOBILE
+		dataType: int64
+		formatString: 0
+		lineageTag: 047bcaf6-d5cd-4f14-b9bc-c5e47e546812
+		summarizeBy: sum
+		sourceColumn: FLAG_CONT_MOBILE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_PHONE
+		dataType: int64
+		formatString: 0
+		lineageTag: 2292f6c0-08ac-4135-afc2-2fc33470898d
+		summarizeBy: sum
+		sourceColumn: FLAG_PHONE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_EMAIL
+		dataType: int64
+		formatString: 0
+		lineageTag: 4f36e63e-d408-4cf9-858e-e29ec5e13562
+		summarizeBy: sum
+		sourceColumn: FLAG_EMAIL
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column OCCUPATION_TYPE
+		dataType: string
+		lineageTag: 6bffab58-847a-4cf4-b85a-f30292a94740
+		summarizeBy: none
+		sourceColumn: OCCUPATION_TYPE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column CNT_FAM_MEMBERS
+		dataType: int64
+		formatString: 0
+		lineageTag: 5438e171-75af-4435-a7fa-f443a5a22dcc
+		summarizeBy: sum
+		sourceColumn: CNT_FAM_MEMBERS
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column REGION_RATING_CLIENT
+		dataType: int64
+		formatString: 0
+		lineageTag: 735019fe-c896-485a-9000-e2dc8ce928b7
+		summarizeBy: sum
+		sourceColumn: REGION_RATING_CLIENT
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column REGION_RATING_CLIENT_W_CITY
+		dataType: int64
+		formatString: 0
+		lineageTag: 4532b68d-2cd7-4d4f-a473-3494771ace6a
+		summarizeBy: sum
+		sourceColumn: REGION_RATING_CLIENT_W_CITY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column WEEKDAY_APPR_PROCESS_START
+		dataType: string
+		lineageTag: 3d1631aa-9bf3-4cd9-afd3-5ea0b653c8ec
+		summarizeBy: none
+		sourceColumn: WEEKDAY_APPR_PROCESS_START
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column HOUR_APPR_PROCESS_START
+		dataType: int64
+		formatString: 0
+		lineageTag: ac020325-3753-4c8e-a278-3d09c5d34d22
+		summarizeBy: sum
+		sourceColumn: HOUR_APPR_PROCESS_START
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column REG_REGION_NOT_LIVE_REGION
+		dataType: int64
+		formatString: 0
+		lineageTag: 033edbfa-2cbf-4f09-b2c3-f841849a8394
+		summarizeBy: sum
+		sourceColumn: REG_REGION_NOT_LIVE_REGION
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column REG_REGION_NOT_WORK_REGION
+		dataType: int64
+		formatString: 0
+		lineageTag: d1b10705-443e-405e-93f7-78f6456ff464
+		summarizeBy: sum
+		sourceColumn: REG_REGION_NOT_WORK_REGION
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column LIVE_REGION_NOT_WORK_REGION
+		dataType: int64
+		formatString: 0
+		lineageTag: 2dc868b4-df20-43c5-a710-6628d9957c1e
+		summarizeBy: sum
+		sourceColumn: LIVE_REGION_NOT_WORK_REGION
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column REG_CITY_NOT_LIVE_CITY
+		dataType: int64
+		formatString: 0
+		lineageTag: a39e92b8-0ccb-493c-8ad3-fbac383bbfcf
+		summarizeBy: sum
+		sourceColumn: REG_CITY_NOT_LIVE_CITY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column REG_CITY_NOT_WORK_CITY
+		dataType: int64
+		formatString: 0
+		lineageTag: 19e6ab3f-eac2-4659-9230-0748bc556a5d
+		summarizeBy: sum
+		sourceColumn: REG_CITY_NOT_WORK_CITY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column LIVE_CITY_NOT_WORK_CITY
+		dataType: int64
+		formatString: 0
+		lineageTag: 6308cedd-34ee-4f83-870d-1f1942792548
+		summarizeBy: sum
+		sourceColumn: LIVE_CITY_NOT_WORK_CITY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ORGANIZATION_TYPE
+		dataType: string
+		lineageTag: 7f874dcf-4da2-448f-b7b6-3be66b727f7e
+		summarizeBy: none
+		sourceColumn: ORGANIZATION_TYPE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column EXT_SOURCE_1
+		dataType: double
+		lineageTag: f8b90534-e35b-44e1-8174-4bd7034070fe
+		summarizeBy: sum
+		sourceColumn: EXT_SOURCE_1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EXT_SOURCE_2
+		dataType: double
+		lineageTag: 60f2c2e2-0e06-404e-a9af-fe65474ff9ae
+		summarizeBy: sum
+		sourceColumn: EXT_SOURCE_2
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column EXT_SOURCE_3
+		dataType: double
+		lineageTag: a63e715a-8298-4b59-8a01-36b274710a7a
+		summarizeBy: sum
+		sourceColumn: EXT_SOURCE_3
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column APARTMENTS_AVG
+		dataType: double
+		lineageTag: ce1681ff-28da-43af-8c8d-be265e78cbae
+		summarizeBy: sum
+		sourceColumn: APARTMENTS_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column BASEMENTAREA_AVG
+		dataType: double
+		lineageTag: 7a5e7cd4-c09f-4f19-9b9e-9cd54b56ee84
+		summarizeBy: sum
+		sourceColumn: BASEMENTAREA_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column YEARS_BEGINEXPLUATATION_AVG
+		dataType: double
+		lineageTag: 5471a96f-1294-43ee-a1ed-e2db26378aa4
+		summarizeBy: sum
+		sourceColumn: YEARS_BEGINEXPLUATATION_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column YEARS_BUILD_AVG
+		dataType: double
+		lineageTag: aa9497e0-72a2-47ca-ae1a-a6ca888ef736
+		summarizeBy: sum
+		sourceColumn: YEARS_BUILD_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column COMMONAREA_AVG
+		dataType: double
+		lineageTag: 1c943878-cdb3-44f9-a58e-252e6e990035
+		summarizeBy: sum
+		sourceColumn: COMMONAREA_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ELEVATORS_AVG
+		dataType: double
+		lineageTag: 13384548-abb5-4818-bd94-1558ec3fdcab
+		summarizeBy: sum
+		sourceColumn: ELEVATORS_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ENTRANCES_AVG
+		dataType: double
+		lineageTag: 84ecd4ea-f607-4c95-9066-81cfe98dfd40
+		summarizeBy: sum
+		sourceColumn: ENTRANCES_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FLOORSMAX_AVG
+		dataType: double
+		lineageTag: 825faa6c-b438-410a-a1bd-6a3239d88446
+		summarizeBy: sum
+		sourceColumn: FLOORSMAX_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FLOORSMIN_AVG
+		dataType: double
+		lineageTag: b7a21e0f-df1f-401a-a0ac-80c5b6712cd2
+		summarizeBy: sum
+		sourceColumn: FLOORSMIN_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LANDAREA_AVG
+		dataType: double
+		lineageTag: 89cf3c93-24fb-4b30-84e2-4ce31749ebf7
+		summarizeBy: sum
+		sourceColumn: LANDAREA_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LIVINGAPARTMENTS_AVG
+		dataType: double
+		lineageTag: cb8c465e-9119-4d67-bc5c-110e635e7efc
+		summarizeBy: sum
+		sourceColumn: LIVINGAPARTMENTS_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LIVINGAREA_AVG
+		dataType: double
+		lineageTag: 162724b0-0961-4c62-9cac-bf7af5f341cc
+		summarizeBy: sum
+		sourceColumn: LIVINGAREA_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column NONLIVINGAPARTMENTS_AVG
+		dataType: double
+		lineageTag: d668612b-6c94-4781-a9d7-2f7f60948e82
+		summarizeBy: sum
+		sourceColumn: NONLIVINGAPARTMENTS_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column NONLIVINGAREA_AVG
+		dataType: double
+		lineageTag: c6e77709-b796-400e-96a4-7871d43d983b
+		summarizeBy: sum
+		sourceColumn: NONLIVINGAREA_AVG
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column APARTMENTS_MODE
+		dataType: double
+		lineageTag: 3e6f303e-3644-4d95-b682-a93a00c6f9b6
+		summarizeBy: sum
+		sourceColumn: APARTMENTS_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column BASEMENTAREA_MODE
+		dataType: double
+		lineageTag: 58e285a5-7733-42c0-994c-9669f0e38410
+		summarizeBy: sum
+		sourceColumn: BASEMENTAREA_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column YEARS_BEGINEXPLUATATION_MODE
+		dataType: double
+		lineageTag: e7a7b4dc-d977-4d10-a63a-f959466dc422
+		summarizeBy: sum
+		sourceColumn: YEARS_BEGINEXPLUATATION_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column YEARS_BUILD_MODE
+		dataType: double
+		lineageTag: 7741b644-4b4d-43f8-8aee-986dc9237ff2
+		summarizeBy: sum
+		sourceColumn: YEARS_BUILD_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column COMMONAREA_MODE
+		dataType: double
+		lineageTag: d1fe39b1-7aa2-4ff4-a751-18b1a8b1b855
+		summarizeBy: sum
+		sourceColumn: COMMONAREA_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ELEVATORS_MODE
+		dataType: double
+		lineageTag: 3c2ca6e1-1cfc-4f59-826a-e092b0c75ec6
+		summarizeBy: sum
+		sourceColumn: ELEVATORS_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ENTRANCES_MODE
+		dataType: double
+		lineageTag: 75455269-770b-4792-9a8e-e48fa3a94683
+		summarizeBy: sum
+		sourceColumn: ENTRANCES_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FLOORSMAX_MODE
+		dataType: double
+		lineageTag: 612872a2-7e99-4874-9aac-7618c426f608
+		summarizeBy: sum
+		sourceColumn: FLOORSMAX_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FLOORSMIN_MODE
+		dataType: double
+		lineageTag: 2828235e-c1a0-47bd-87cb-b67df129a9eb
+		summarizeBy: sum
+		sourceColumn: FLOORSMIN_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LANDAREA_MODE
+		dataType: double
+		lineageTag: 79189ea6-dd6c-44bd-a130-fc6b1955dccc
+		summarizeBy: sum
+		sourceColumn: LANDAREA_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LIVINGAPARTMENTS_MODE
+		dataType: double
+		lineageTag: 4f8162e9-8933-42e2-993b-4ccad9d432d1
+		summarizeBy: sum
+		sourceColumn: LIVINGAPARTMENTS_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LIVINGAREA_MODE
+		dataType: double
+		lineageTag: 35b49f7c-3b57-4062-aeb0-737c9679d044
+		summarizeBy: sum
+		sourceColumn: LIVINGAREA_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column NONLIVINGAPARTMENTS_MODE
+		dataType: double
+		lineageTag: 987c4e66-5025-4f52-8b40-71966006d25b
+		summarizeBy: sum
+		sourceColumn: NONLIVINGAPARTMENTS_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column NONLIVINGAREA_MODE
+		dataType: double
+		lineageTag: 4e47866f-290a-4087-9ccd-5ef7be8962f2
+		summarizeBy: sum
+		sourceColumn: NONLIVINGAREA_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column APARTMENTS_MEDI
+		dataType: double
+		lineageTag: 30633408-4d72-411f-8038-f39ad317fdac
+		summarizeBy: sum
+		sourceColumn: APARTMENTS_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column BASEMENTAREA_MEDI
+		dataType: double
+		lineageTag: 6295ff87-8a9f-4f90-ad10-46d07c8924ba
+		summarizeBy: sum
+		sourceColumn: BASEMENTAREA_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column YEARS_BEGINEXPLUATATION_MEDI
+		dataType: double
+		lineageTag: 493d7ef1-26b9-41e2-b384-9e8044afd7a6
+		summarizeBy: sum
+		sourceColumn: YEARS_BEGINEXPLUATATION_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column YEARS_BUILD_MEDI
+		dataType: double
+		lineageTag: e6b10f1d-fceb-4df3-84dc-a9a3147672c4
+		summarizeBy: sum
+		sourceColumn: YEARS_BUILD_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column COMMONAREA_MEDI
+		dataType: double
+		lineageTag: 3170316e-23e5-4c9f-bd87-823a0211e762
+		summarizeBy: sum
+		sourceColumn: COMMONAREA_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ELEVATORS_MEDI
+		dataType: double
+		lineageTag: 2ac41a5a-ff19-4c51-aded-42b6f404c0b0
+		summarizeBy: sum
+		sourceColumn: ELEVATORS_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ENTRANCES_MEDI
+		dataType: double
+		lineageTag: e517341f-b9ad-4ff2-bd1f-87b548281ade
+		summarizeBy: sum
+		sourceColumn: ENTRANCES_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FLOORSMAX_MEDI
+		dataType: double
+		lineageTag: cb2603e0-894d-48cb-8930-20aea0bbaece
+		summarizeBy: sum
+		sourceColumn: FLOORSMAX_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FLOORSMIN_MEDI
+		dataType: double
+		lineageTag: 34dd4f34-832b-4573-b233-86e04caaf063
+		summarizeBy: sum
+		sourceColumn: FLOORSMIN_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LANDAREA_MEDI
+		dataType: double
+		lineageTag: b7f86c62-c93b-44de-a390-d07be637f6d4
+		summarizeBy: sum
+		sourceColumn: LANDAREA_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LIVINGAPARTMENTS_MEDI
+		dataType: double
+		lineageTag: a92b3883-3c20-44f0-86cc-cc440ec77f20
+		summarizeBy: sum
+		sourceColumn: LIVINGAPARTMENTS_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column LIVINGAREA_MEDI
+		dataType: double
+		lineageTag: 09251cdb-c170-4d00-9f91-1da924f44bac
+		summarizeBy: sum
+		sourceColumn: LIVINGAREA_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column NONLIVINGAPARTMENTS_MEDI
+		dataType: double
+		lineageTag: 703172a5-0aae-49d2-8b11-9d6e440e0b5b
+		summarizeBy: sum
+		sourceColumn: NONLIVINGAPARTMENTS_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column NONLIVINGAREA_MEDI
+		dataType: double
+		lineageTag: e20d2f05-33f4-497c-aafb-e211f4b303ee
+		summarizeBy: sum
+		sourceColumn: NONLIVINGAREA_MEDI
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FONDKAPREMONT_MODE
+		dataType: string
+		lineageTag: 57be7d6b-b591-462d-b056-48fe8d59d12d
+		summarizeBy: none
+		sourceColumn: FONDKAPREMONT_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column HOUSETYPE_MODE
+		dataType: string
+		lineageTag: 730de2a0-a171-4f1e-8b8d-3f004c0b0f05
+		summarizeBy: none
+		sourceColumn: HOUSETYPE_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TOTALAREA_MODE
+		dataType: double
+		lineageTag: 3436bf0b-41a7-4b87-b287-1260a65ac7ba
+		summarizeBy: sum
+		sourceColumn: TOTALAREA_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column WALLSMATERIAL_MODE
+		dataType: string
+		lineageTag: 3a10c182-61ea-4779-b778-5d263a0732d8
+		summarizeBy: none
+		sourceColumn: WALLSMATERIAL_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column EMERGENCYSTATE_MODE
+		dataType: string
+		lineageTag: 833c1917-0c9e-4fa5-9996-63adb728dc68
+		summarizeBy: none
+		sourceColumn: EMERGENCYSTATE_MODE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column OBS_30_CNT_SOCIAL_CIRCLE
+		dataType: int64
+		formatString: 0
+		lineageTag: 1128737f-cd38-483c-98af-3bfa0a3977df
+		summarizeBy: sum
+		sourceColumn: OBS_30_CNT_SOCIAL_CIRCLE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DEF_30_CNT_SOCIAL_CIRCLE
+		dataType: int64
+		formatString: 0
+		lineageTag: 36790680-657b-4556-831d-381eccaed6c5
+		summarizeBy: sum
+		sourceColumn: DEF_30_CNT_SOCIAL_CIRCLE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column OBS_60_CNT_SOCIAL_CIRCLE
+		dataType: int64
+		formatString: 0
+		lineageTag: ed7f5fe9-5308-4842-a869-b894bcc392f1
+		summarizeBy: sum
+		sourceColumn: OBS_60_CNT_SOCIAL_CIRCLE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DEF_60_CNT_SOCIAL_CIRCLE
+		dataType: int64
+		formatString: 0
+		lineageTag: b80b8b48-b293-42fd-9ff4-b24b157fbc37
+		summarizeBy: sum
+		sourceColumn: DEF_60_CNT_SOCIAL_CIRCLE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DAYS_LAST_PHONE_CHANGE
+		dataType: int64
+		formatString: 0
+		lineageTag: 2f55a61c-e9e5-4283-b3d6-39574bc401f7
+		summarizeBy: sum
+		sourceColumn: DAYS_LAST_PHONE_CHANGE
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_2
+		dataType: int64
+		formatString: 0
+		lineageTag: ef75a8eb-a011-497a-a8a1-13d6ec2918ce
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_2
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_3
+		dataType: int64
+		formatString: 0
+		lineageTag: 676f210d-16fb-4fa2-897e-379b1f06ca61
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_3
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_4
+		dataType: int64
+		formatString: 0
+		lineageTag: 99bbd82c-0c17-4c37-8dc3-e75288403a7f
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_4
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_5
+		dataType: int64
+		formatString: 0
+		lineageTag: 8dc6fb68-b5a8-4891-96c2-422652c6d512
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_5
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_6
+		dataType: int64
+		formatString: 0
+		lineageTag: fccff668-dee3-47fc-b950-06d8355824ed
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_6
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_7
+		dataType: int64
+		formatString: 0
+		lineageTag: 0c208459-77dc-4b2f-b587-0e963cfb1cff
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_7
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_8
+		dataType: int64
+		formatString: 0
+		lineageTag: fd77d6e9-c474-4185-8b5c-243b44fba1ec
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_8
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_9
+		dataType: int64
+		formatString: 0
+		lineageTag: 9a915729-e37b-45d6-9e9d-85fb6041c8ef
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_9
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_10
+		dataType: int64
+		formatString: 0
+		lineageTag: 9190c7cb-57b5-478e-aac2-fe55c22ecba4
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_10
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_11
+		dataType: int64
+		formatString: 0
+		lineageTag: 091690f9-1519-46fa-9e48-5c9558584e5f
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_11
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_12
+		dataType: int64
+		formatString: 0
+		lineageTag: 6e216bf0-9a44-485e-b1b8-f682a2ed165b
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_12
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_13
+		dataType: int64
+		formatString: 0
+		lineageTag: edf64134-4346-454f-86d5-dd0d2c006f97
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_13
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_14
+		dataType: int64
+		formatString: 0
+		lineageTag: 6ffb00ca-4868-4203-ac95-8e1f4d18f3b6
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_14
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_15
+		dataType: int64
+		formatString: 0
+		lineageTag: 519bbcaa-7165-4e74-94dd-35e3068ac847
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_15
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_16
+		dataType: int64
+		formatString: 0
+		lineageTag: 9931d4c2-7e16-4330-b2be-c4c59910202c
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_16
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_17
+		dataType: int64
+		formatString: 0
+		lineageTag: 8b2cd1b8-ce50-4edb-b805-e71b2a6b563c
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_17
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_18
+		dataType: int64
+		formatString: 0
+		lineageTag: ba673783-7152-426f-ac9f-07f9e70ad23b
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_18
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_19
+		dataType: int64
+		formatString: 0
+		lineageTag: 067a1e4b-55f5-41a1-a10c-d71cf41a8370
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_19
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_20
+		dataType: int64
+		formatString: 0
+		lineageTag: ecb6ceec-d521-4fdb-a371-9231592ea0fd
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_20
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FLAG_DOCUMENT_21
+		dataType: int64
+		formatString: 0
+		lineageTag: 3bd4e2f3-5803-4e65-981c-679a79b8b863
+		summarizeBy: sum
+		sourceColumn: FLAG_DOCUMENT_21
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AMT_REQ_CREDIT_BUREAU_HOUR
+		dataType: int64
+		formatString: 0
+		lineageTag: 83aacf15-134c-42e7-9ecf-d1316ea4771e
+		summarizeBy: sum
+		sourceColumn: AMT_REQ_CREDIT_BUREAU_HOUR
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AMT_REQ_CREDIT_BUREAU_DAY
+		dataType: int64
+		formatString: 0
+		lineageTag: 7172be26-7237-433f-9a2f-4f5327aff25f
+		summarizeBy: sum
+		sourceColumn: AMT_REQ_CREDIT_BUREAU_DAY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AMT_REQ_CREDIT_BUREAU_WEEK
+		dataType: int64
+		formatString: 0
+		lineageTag: 7e47428f-f138-443f-b756-9c809997a812
+		summarizeBy: sum
+		sourceColumn: AMT_REQ_CREDIT_BUREAU_WEEK
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AMT_REQ_CREDIT_BUREAU_MON
+		dataType: int64
+		formatString: 0
+		lineageTag: e6ca4c05-7bcd-4355-827e-a992f3468851
+		summarizeBy: sum
+		sourceColumn: AMT_REQ_CREDIT_BUREAU_MON
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AMT_REQ_CREDIT_BUREAU_QRT
+		dataType: int64
+		formatString: 0
+		lineageTag: 1748e4fb-83bd-435c-b242-4e304def967d
+		summarizeBy: sum
+		sourceColumn: AMT_REQ_CREDIT_BUREAU_QRT
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AMT_REQ_CREDIT_BUREAU_YEAR
+		dataType: int64
+		formatString: 0
+		lineageTag: 7ae66f8d-004d-4e25-9a87-e3589debc198
+		summarizeBy: sum
+		sourceColumn: AMT_REQ_CREDIT_BUREAU_YEAR
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column RiskBand = SWITCH(TRUE(), application_train_powerbi_slice[AMT_CREDIT] <= 270000, "Low", application_train_powerbi_slice[AMT_CREDIT] <= 808650, "Medium","High")
+		lineageTag: 02998918-6431-42d5-97ba-9411626ce2d4
+		summarizeBy: none
+		sortByColumn: RiskBandSortOrder
+
+		changedProperty = SortByColumn
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column RiskBandSortOrder =
+			
+			SWITCH(
+			    TRUE(),
+			    application_train_powerbi_slice[AMT_CREDIT] <= 270000, 3,   -- same cutoff as your "Low" bucket
+			    application_train_powerbi_slice[AMT_CREDIT] <= 808650, 2,   -- same cutoff as your "Medium" bucket
+			    1                                             -- everything else = "High"
+			)
+		formatString: 0
+		lineageTag: 31de4ffc-84bd-4503-a2b6-4591e50cbb14
+		summarizeBy: sum
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition application_train_powerbi_slice = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\nguye\credit-risk\data\interim\application_train_powerbi_slice.csv"),[Delimiter=",", Columns=122, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"SK_ID_CURR", Int64.Type}, {"TARGET", Int64.Type}, {"NAME_CONTRACT_TYPE", type text}, {"CODE_GENDER", type text}, {"FLAG_OWN_CAR", type text}, {"FLAG_OWN_REALTY", type text}, {"CNT_CHILDREN", Int64.Type}, {"AMT_INCOME_TOTAL", Int64.Type}, {"AMT_CREDIT", type number}, {"AMT_ANNUITY", type number}, {"AMT_GOODS_PRICE", type number}, {"NAME_TYPE_SUITE", type text}, {"NAME_INCOME_TYPE", type text}, {"NAME_EDUCATION_TYPE", type text}, {"NAME_FAMILY_STATUS", type text}, {"NAME_HOUSING_TYPE", type text}, {"REGION_POPULATION_RELATIVE", type number}, {"DAYS_BIRTH", Int64.Type}, {"DAYS_EMPLOYED", Int64.Type}, {"DAYS_REGISTRATION", Int64.Type}, {"DAYS_ID_PUBLISH", Int64.Type}, {"OWN_CAR_AGE", Int64.Type}, {"FLAG_MOBIL", Int64.Type}, {"FLAG_EMP_PHONE", Int64.Type}, {"FLAG_WORK_PHONE", Int64.Type}, {"FLAG_CONT_MOBILE", Int64.Type}, {"FLAG_PHONE", Int64.Type}, {"FLAG_EMAIL", Int64.Type}, {"OCCUPATION_TYPE", type text}, {"CNT_FAM_MEMBERS", Int64.Type}, {"REGION_RATING_CLIENT", Int64.Type}, {"REGION_RATING_CLIENT_W_CITY", Int64.Type}, {"WEEKDAY_APPR_PROCESS_START", type text}, {"HOUR_APPR_PROCESS_START", Int64.Type}, {"REG_REGION_NOT_LIVE_REGION", Int64.Type}, {"REG_REGION_NOT_WORK_REGION", Int64.Type}, {"LIVE_REGION_NOT_WORK_REGION", Int64.Type}, {"REG_CITY_NOT_LIVE_CITY", Int64.Type}, {"REG_CITY_NOT_WORK_CITY", Int64.Type}, {"LIVE_CITY_NOT_WORK_CITY", Int64.Type}, {"ORGANIZATION_TYPE", type text}, {"EXT_SOURCE_1", type number}, {"EXT_SOURCE_2", type number}, {"EXT_SOURCE_3", type number}, {"APARTMENTS_AVG", type number}, {"BASEMENTAREA_AVG", type number}, {"YEARS_BEGINEXPLUATATION_AVG", type number}, {"YEARS_BUILD_AVG", type number}, {"COMMONAREA_AVG", type number}, {"ELEVATORS_AVG", type number}, {"ENTRANCES_AVG", type number}, {"FLOORSMAX_AVG", type number}, {"FLOORSMIN_AVG", type number}, {"LANDAREA_AVG", type number}, {"LIVINGAPARTMENTS_AVG", type number}, {"LIVINGAREA_AVG", type number}, {"NONLIVINGAPARTMENTS_AVG", type number}, {"NONLIVINGAREA_AVG", type number}, {"APARTMENTS_MODE", type number}, {"BASEMENTAREA_MODE", type number}, {"YEARS_BEGINEXPLUATATION_MODE", type number}, {"YEARS_BUILD_MODE", type number}, {"COMMONAREA_MODE", type number}, {"ELEVATORS_MODE", type number}, {"ENTRANCES_MODE", type number}, {"FLOORSMAX_MODE", type number}, {"FLOORSMIN_MODE", type number}, {"LANDAREA_MODE", type number}, {"LIVINGAPARTMENTS_MODE", type number}, {"LIVINGAREA_MODE", type number}, {"NONLIVINGAPARTMENTS_MODE", type number}, {"NONLIVINGAREA_MODE", type number}, {"APARTMENTS_MEDI", type number}, {"BASEMENTAREA_MEDI", type number}, {"YEARS_BEGINEXPLUATATION_MEDI", type number}, {"YEARS_BUILD_MEDI", type number}, {"COMMONAREA_MEDI", type number}, {"ELEVATORS_MEDI", type number}, {"ENTRANCES_MEDI", type number}, {"FLOORSMAX_MEDI", type number}, {"FLOORSMIN_MEDI", type number}, {"LANDAREA_MEDI", type number}, {"LIVINGAPARTMENTS_MEDI", type number}, {"LIVINGAREA_MEDI", type number}, {"NONLIVINGAPARTMENTS_MEDI", type number}, {"NONLIVINGAREA_MEDI", type number}, {"FONDKAPREMONT_MODE", type text}, {"HOUSETYPE_MODE", type text}, {"TOTALAREA_MODE", type number}, {"WALLSMATERIAL_MODE", type text}, {"EMERGENCYSTATE_MODE", type text}, {"OBS_30_CNT_SOCIAL_CIRCLE", Int64.Type}, {"DEF_30_CNT_SOCIAL_CIRCLE", Int64.Type}, {"OBS_60_CNT_SOCIAL_CIRCLE", Int64.Type}, {"DEF_60_CNT_SOCIAL_CIRCLE", Int64.Type}, {"DAYS_LAST_PHONE_CHANGE", Int64.Type}, {"FLAG_DOCUMENT_2", Int64.Type}, {"FLAG_DOCUMENT_3", Int64.Type}, {"FLAG_DOCUMENT_4", Int64.Type}, {"FLAG_DOCUMENT_5", Int64.Type}, {"FLAG_DOCUMENT_6", Int64.Type}, {"FLAG_DOCUMENT_7", Int64.Type}, {"FLAG_DOCUMENT_8", Int64.Type}, {"FLAG_DOCUMENT_9", Int64.Type}, {"FLAG_DOCUMENT_10", Int64.Type}, {"FLAG_DOCUMENT_11", Int64.Type}, {"FLAG_DOCUMENT_12", Int64.Type}, {"FLAG_DOCUMENT_13", Int64.Type}, {"FLAG_DOCUMENT_14", Int64.Type}, {"FLAG_DOCUMENT_15", Int64.Type}, {"FLAG_DOCUMENT_16", Int64.Type}, {"FLAG_DOCUMENT_17", Int64.Type}, {"FLAG_DOCUMENT_18", Int64.Type}, {"FLAG_DOCUMENT_19", Int64.Type}, {"FLAG_DOCUMENT_20", Int64.Type}, {"FLAG_DOCUMENT_21", Int64.Type}, {"AMT_REQ_CREDIT_BUREAU_HOUR", Int64.Type}, {"AMT_REQ_CREDIT_BUREAU_DAY", Int64.Type}, {"AMT_REQ_CREDIT_BUREAU_WEEK", Int64.Type}, {"AMT_REQ_CREDIT_BUREAU_MON", Int64.Type}, {"AMT_REQ_CREDIT_BUREAU_QRT", Int64.Type}, {"AMT_REQ_CREDIT_BUREAU_YEAR", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+

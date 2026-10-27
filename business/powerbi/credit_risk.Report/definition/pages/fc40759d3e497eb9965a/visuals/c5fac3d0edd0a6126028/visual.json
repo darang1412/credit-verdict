@@ -1,0 +1,49 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "c5fac3d0edd0a6126028",
+  "position": {
+    "x": 0,
+    "y": 21.932576247741014,
+    "z": 4000,
+    "height": 148.04488967225186,
+    "width": 1919.1004216773388,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "After the model: who is risky, and where to set the cutoff",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "44pt"
+                    }
+                  }
+                ],
+                "horizontalTextAlignment": "center"
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Source: scored applicants with calibrated default probabilities (PD)",
+                    "textStyle": {
+                      "fontSize": "24pt"
+                    }
+                  }
+                ],
+                "horizontalTextAlignment": "center"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

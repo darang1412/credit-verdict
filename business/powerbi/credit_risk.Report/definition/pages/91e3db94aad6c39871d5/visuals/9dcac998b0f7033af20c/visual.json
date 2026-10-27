@@ -1,0 +1,43 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "9dcac998b0f7033af20c",
+  "position": {
+    "x": 1366.6666666666667,
+    "y": 815,
+    "z": 10000,
+    "height": 218.33333333333334,
+    "width": 518.33333333333337,
+    "tabOrder": 10000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Takeaway: default rates only move between 5.9% and 9.6%, and they don't rise with loan size. Credit amount alone can't separate risky applicants from safe ones, which is the gap the model fills.",
+                    "textStyle": {
+                      "fontSize": "20pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

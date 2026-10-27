@@ -1,0 +1,49 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "57e85023f62a131b2913",
+  "position": {
+    "x": 0,
+    "y": 21.932576247741014,
+    "z": 4000,
+    "height": 148.04488967225186,
+    "width": 1919.1004216773388,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Before the model: what the raw data shows",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "44pt"
+                    }
+                  }
+                ],
+                "horizontalTextAlignment": "center"
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "source: application training slice, 25,000 applicants, actual default outcomes",
+                    "textStyle": {
+                      "fontSize": "24pt"
+                    }
+                  }
+                ],
+                "horizontalTextAlignment": "center"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

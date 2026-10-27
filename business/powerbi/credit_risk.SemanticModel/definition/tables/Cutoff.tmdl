@@ -1,0 +1,34 @@
+table Cutoff
+	lineageTag: 91ff2bfb-a0c9-424e-9ff9-47181bd51c6c
+
+	measure 'Cutoff Value' =
+			
+			IF (
+			    HASONEVALUE ( 'Cutoff Axis'[Value] ),
+			    MAX ( 'Cutoff Axis'[Value] ),
+			    SELECTEDVALUE ( 'Cutoff'[Cutoff], 0.15 )
+			)
+		lineageTag: 566898df-6514-4ba8-9b2e-54b61ba13b95
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Cutoff
+		lineageTag: d960924c-f3d1-4a4f-9d8b-2738a4f069b8
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 0
+				}
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Cutoff = calculated
+		mode: import
+		source = GENERATESERIES(0.05, 0.5, 0.05)
+
+	annotation PBI_Id = 2592e5528ffd42979e88d061de88dc0c
+
