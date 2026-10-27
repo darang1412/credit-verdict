@@ -1,229 +1,161 @@
 # Credit Verdict
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Python 3.10+](https://img.shields.io/badge/python-3.10+-green.svg)](https://python.org) [![LangGraph](https://img.shields.io/badge/orchestration-LangGraph-1C3C3C.svg)](https://langchain-ai.github.io/langgraph/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Python 3.13](https://img.shields.io/badge/python-3.13-green.svg)](https://python.org)
 
-> **You've probably seen a Home Credit Default Risk notebook before — here's what's different about this one:** a **calibrated** model (not just AUC-optimized) and a **RAG-grounded Adverse Action Notice generator** that cites real ECOA/Regulation B and OSFI E-23 text, with its own citations audited for faithfulness.
->
-> ![Demo](assets/demo.gif)
-> *[Insert 10–15s screen capture: an application scored → decision returned → cited Adverse Action explanation generated]*
+You have probably seen a Home Credit Default Risk notebook before. This one does three things differently. It calibrates the model's probabilities instead of stopping at AUC. It checks every score in SQL before the score reaches a dashboard. And it gives you a Power BI cutoff slider, so you can see what an approval threshold costs in approval rate and expected loss.
+
+![Before the model: what the raw data shows](reports/figures/dashboard_before_model.png)
+![After the model: who is risky, and where to set the cutoff](reports/figures/dashboard_after_model.png)
 
 ## Table of Contents
 - [Overview](#overview)
 - [Status](#status)
 - [Results](#results)
-- [LangGraph Multi-Agent Flow](#langgraph-multi-agent-flow)
-- [Backend Technologies](#backend-technologies)
-- [Frontend Technologies](#frontend-technologies)
-- [Development Tools](#development-tools)
-- [Business Impact](#business-impact)
-- [Key Features](#key-features)
-- [System Components](#system-components)
-- [Responsible AI Components](#responsible-ai-components)
-- [Why the Applicant Tool and Dashboard Are Separate](#why-the-applicant-tool-and-dashboard-are-separate)
+- [Key Findings](#key-findings)
+- [Pipeline](#pipeline)
+- [SQL Analysis](#sql-analysis)
+- [Power BI Dashboard](#power-bi-dashboard)
+- [Tech Stack](#tech-stack)
 - [Quick Start](#quick-start)
 - [Project Structure](#project-structure)
-- [Testing](#testing)
+- [Limitations](#limitations)
 - [Dataset](#dataset)
-- [Model Card](#model-card)
-- [Future Development](#future-development)
-- [Assumptions](#assumptions)
 - [Reference](#reference)
 - [License](#license)
 
 ## Overview
 
-Credit Verdict is a loan-default risk system built on Kaggle's [Home Credit Default Risk](https://www.kaggle.com/c/home-credit-default-risk) dataset, designed around a problem most credit-risk portfolio projects ignore: **a model that scores applicants isn't enough — a real lender is legally required to give a specific, defensible reason when it denies credit** (ECOA/Regulation B in the U.S., OSFI Guideline E-23 for federally regulated Canadian institutions).
+Credit Verdict predicts loan default on Kaggle's [Home Credit Default Risk](https://www.kaggle.com/c/home-credit-default-risk) dataset. The project starts from one business question:
 
-Credit Verdict addresses both halves of that problem in one system:
+> How should a lender decide who to approve, so expected loss stays under control, good applicants don't get turned away, and every decline has a reason you can explain?
 
-- **Accuracy & calibration** — a LightGBM classifier, benchmarked honestly against a logistic regression baseline, with its probability outputs explicitly calibrated (not just AUC-optimized) so a "12% probability of default" actually corresponds to real-world default rates.
-- **Explainability & compliance** — SHAP identifies the specific factors driving each decision; a multi-agent RAG pipeline (LangGraph + Azure OpenAI) turns those factors into a plain-English, regulation-cited Adverse Action Notice, with its own citations audited for faithfulness via RAGAS before they're ever shown to a user.
+The project has three parts:
+
+- **Calibrated risk scoring.** A LightGBM classifier beats a logistic regression baseline. Isotonic regression then calibrates it, so a 12% predicted probability of default means about 12%.
+- **Explainability.** SHAP shows the top factors that push each applicant toward default. Regulation B (ECOA) and OSFI E-23 expect specific reasons for a denial, so a score alone isn't enough.
+- **Decision support.** The scored applicants go into Postgres, get analyzed in SQL, and show up in a Power BI dashboard with an interactive cutoff.
 
 ## Status
 
-- [x] Phase 0 — Project scaffolding
-- [x] Phase 1 — ML fundamentals
-- [x] Phase 2 — Credit risk & regulatory domain research
-- [x] Phase 3 — Data & exploratory data analysis
-- [x] Phase 4 — Feature engineering
-- [x] Phase 5 — Model training & experimentation (MLflow)
-- [x] Phase 6 — Calibration
-- [x] Phase 7 — SHAP explainability
-- [ ] Phase 8 — Multi-agent RAG / Adverse Action Notice generation
-- [ ] Phase 9 — Full-stack build (FastAPI, applicant-input UI, Streamlit dev view)
-- [ ] Phase 10 — Business case, dashboard, monitoring, README polish
+- [x] Phase 0: Project scaffolding
+- [x] Phase 0.5: Power BI fast-track on a stratified 25,000-row slice
+- [x] Phase 1-2: ML fundamentals, credit-risk and regulatory research
+- [x] Phase 3: Exploratory data analysis
+- [x] Phase 4: Feature engineering (52 new columns from three auxiliary tables)
+- [x] Phase 5: Model training, tuning and MLflow tracking
+- [x] Phase 6: Calibration
+- [x] Phase 7: SHAP explainability
+- [x] Phase 8: Scoring to Postgres and SQL analysis
+- [x] Phase 9: Power BI dashboard connected to Postgres
 
 ## Results
 
 | Metric | Value |
 |---|---|
-| **AUC (ROC)** | [X] |
-| **Brier score, pre-calibration** | [X] |
-| **Brier score, post-calibration** | [X] |
-| **Features** | [X] engineered from `application_train`, `bureau`, `previous_application`, `credit_card_balance` |
-| **Dataset** | 307,511 loan applications (8.1% default rate) |
-| **RAGAS faithfulness (Adverse Action explanations)** | [X] |
+| Dataset | 307,511 loan applications, 8.07% default rate |
+| Features | 122 raw, plus 52 engineered from `bureau`, `previous_application` and `credit_card_balance` |
+| AUC (validation) | 0.780 LightGBM (tuned) vs. 0.765 logistic regression |
+| PR-AUC (validation) | 0.273 LightGBM vs. 0.250 logistic regression |
+| Brier score, raw | 0.1706 (worse than the 0.0742 base-rate baseline) |
+| Brier score, calibrated | 0.0665 |
+| Average predicted PD by segment | Low 1.8%, Medium 5.3%, High 17.4% (about a 10x spread) |
+| Python vs. SQL segment check | 100% match on 61,503 applicants |
 
-AUC alone isn't the headline metric here — see [`notebooks/model_evaluation.ipynb`](notebooks/model_evaluation.ipynb) for the calibration curve and Brier score comparison that this project treats as equally important.
+AUC isn't the headline here. Calibration matters just as much. You can read the code in [`ml/modeling/calibration.py`](ml/modeling/calibration.py) and see the reliability diagram below.
 
-## LangGraph Multi-Agent Flow
+![Reliability diagram: raw vs. isotonic-calibrated](reports/figures/calibration_reliability_diagram.png)
 
-This section outlines the agent routing behind the Adverse Action follow-up Q&A — triggered from preset question buttons in the applicant UI (see [Technical Implementation Details](#technical-implementation-details)), not an open-ended chat box.
+The Phase 5 model (AUC 0.7799) trains on the full 80% training split. The Phase 6 model (AUC 0.7776) gives up 20% of that split to fit the calibrator. The two numbers describe different models.
 
-### Agent Definitions
+## Key Findings
 
-- **`ASSISTANT_AGENT`**: Handles greetings, general queries, and fallback responses.
-- **`EXPLANATION_AGENT`**: Pulls the precomputed SHAP factors for the applicant in context. Deterministic — no LLM call, cannot invent a factor that wasn't actually in the model's output.
-- **`COMPLIANCE_RAG_AGENT`**: Retrieves grounding text from the ECOA/OSFI-E23 compliance corpus (pgvector) and runs the RAGAS faithfulness check before any explanation is finalized.
-- **`REPORTING_AGENT`**: Synthesizes `EXPLANATION_AGENT`'s factors and `COMPLIANCE_RAG_AGENT`'s grounded text into the final plain-English response.
+1. **A simple rule can't rank risk.** In the raw data, default rate by loan size doesn't rise or fall in a straight line. Medium loans default at 9.6%, Low at 7.1% and High at 5.9%. Credit amount alone can't separate risky applicants from safe ones, and that gap is where the model helps.
+2. **Class weighting breaks probabilities.** The `scale_pos_weight` setting (about 11.4) helps ranking but pushes the raw output far from the true default rate. The Brier score came out more than double the "always predict the base rate" baseline. Isotonic calibration fixed it (0.1706 down to 0.0665). It cost a little PR-AUC (0.2731 down to 0.2615).
+3. **External credit scores dominate.** `EXT_SOURCE_MEAN` averages three bureau scores. Its mean absolute SHAP value is 0.52, more than 3x the next feature. Engineered ratios beat the raw columns they come from.
 
-### Selection Strategy & Agent Flow
+![SHAP global feature importance](reports/figures/shap_global_summary.png)
 
-Routing scales with query complexity — not every question invokes every agent.
+4. **Missing data carries signal.** Applicants with no bureau record default at 10.12%, against 7.73% for the rest. The `DAYS_EMPLOYED = 365243` placeholder covers 18% of rows and marks a safer group (5.40% vs. 8.66%).
+5. **The cutoff is a business choice.** At a cutoff of 0.05, you approve 47.9% of applicants and carry about $436M of expected loss. At 0.50, you approve 99.6% and carry about $2.65B. The dashboard opens at 0.15, which approves 86%.
 
-#### 1. General Queries
-**Example**: `"Hello, can you help me?"`
+## Pipeline
+
 ```
-User Query → ASSISTANT_AGENT → End Conversation
+data/raw (CSVs)
+  -> ml/pipeline/features.py        multi-table aggregation, writes data/processed/features.parquet
+  -> ml/modeling/train.py           logistic baseline + LightGBM, tuning, CV, MLflow
+  -> ml/modeling/calibration.py     diagnose, then isotonic calibration, reliability diagram
+  -> ml/explain/shap_analysis.py    global + local SHAP, writes reports/top_shap_factors.json
+  -> ml/modeling/score_and_write.py score 61,503 held-out applicants into Postgres `scored_applications`
+  -> business/sql/*.sql             segment, cutoff and validation analysis
+  -> business/powerbi/credit_risk   Power BI project reading Postgres
 ```
 
-#### 2. "Why was I declined / approved?"
-**Example**: `"Why was my application declined?"`
+A few engineering choices are worth knowing about:
+
+- **Stratified splits** keep the 8.07% default rate in both train and validation. The project weights classes instead of resampling, because resampling changes the base rate that calibration relies on.
+- **Calibration runs only when the diagnostic fails.** The script fits isotonic regression if the Brier score is worse than the base-rate baseline or if ECE is above 0.05. It logs `calibration_applied` to MLflow, so you can audit the decision. The calibrator trains on its own slice, not the validation set.
+- **LightGBM 4.7.0 has an early-stopping bug.** With `scale_pos_weight` set, the callback picked iteration 1 as the best (AUC 0.7245, below the baseline). `train.py` now trains 800 rounds, reads the validation curve and picks the best iteration itself (765).
+- **Data-quality fixes.** Zero denominators made `inf` values in two ratio features, so the code treats them as `NaN`. The `DAYS_EMPLOYED` placeholder becomes `NaN` plus an anomaly flag.
+- **SHAP explains the raw LightGBM model**, not the isotonic wrapper. It tells you what drove the score, not what the calibration step did.
+
+## SQL Analysis
+
+[`business/sql/`](business/sql/) holds four queries. Each uses a different technique and runs against the live `scored_applications` table.
+
+| File | Technique | Question |
+|---|---|---|
+| `segment_summary.sql` | `GROUP BY` | How risky and how large is each segment? |
+| `cutoff_tradeoff.sql` | `generate_series` + conditional `LEFT JOIN` | What do approval rate and expected loss look like across ten cutoffs? |
+| `top_risk_per_segment.sql` | `ROW_NUMBER() OVER (PARTITION BY ...)` | Who is riskiest in each segment, and why? |
+| `validate_segmentation_in_sql.sql` | `PERCENTILE_CONT ... WITHIN GROUP` | Do the Python segments match an independent SQL recomputation? |
+
+## Power BI Dashboard
+
+The dashboard lives in [`business/powerbi/`](business/powerbi/) as a text-based Power BI Project (PBIP). That format lets git show you clean diffs.
+
 ```
-User Query → EXPLANATION_AGENT → REPORTING_AGENT → End Conversation
+business/powerbi/
+├── credit_risk.pbip              # entry point, open this in Power BI Desktop
+├── credit_risk.Report/           # pages and visuals
+└── credit_risk.SemanticModel/    # tables, relationships, DAX measures (TMDL)
 ```
-SHAP factors are precomputed at scoring time — no retrieval call is needed for the core "why."
 
-#### 3. "What can I do to improve my chances? / Can you cite the rule?"
-**Example**: `"What could I do differently if I reapply?"`
+Keep all three together. The report points to the semantic model by relative path.
+
+**Page 1, "Before the model."** It uses a 25,000-row stratified slice of the raw application data. A `RiskBand` calculated column splits `AMT_CREDIT` by quartile, and measures give you default rate and average credit amount. The page shows that loan size alone doesn't rank risk.
+
+**Page 2, "After the model."** It reads `scored_applications` from Postgres in Import mode.
+- A What-if cutoff slider drives `Approval Rate at Cutoff` and `Expected Loss`. The slider is a disconnected `Cutoff` table read through `SELECTEDVALUE`. A separate `Cutoff Axis` table feeds the line chart.
+- The page shows expected-loss rate by cutoff, a segment bar chart, a segment detail table (with each segment's share of expected loss) and the top SHAP factor for high-risk applicants.
+- `RiskSegment` is a dimension table with a one-to-many, single-direction relationship to the scored fact table.
+- `Expected Loss` equals PD times `amt_credit`. It has no loss-given-default and no cost matrix, so treat it as a rough proxy and not a forecast.
+
+**To open it,** turn on *Power BI Project (.pbip)* under Options, then Preview features. Start Postgres (see Quick Start) and open `credit_risk.pbip`. Page 1 reads a CSV from a path on the author's machine. Re-point it under Transform Data, then Source, to your own `data/interim/application_train_powerbi_slice.csv`. Create that file like this:
+
+```python
+import pandas as pd
+from sklearn.model_selection import train_test_split
+df = pd.read_csv("data/raw/application_train.csv")
+_, s = train_test_split(df, test_size=25_000, stratify=df["TARGET"], random_state=42)
+s.to_csv("data/interim/application_train_powerbi_slice.csv", index=False)
 ```
-User Query → EXPLANATION_AGENT → COMPLIANCE_RAG_AGENT → REPORTING_AGENT → End Conversation
-```
-Retrieval is only invoked when grounding is actually needed for the answer — SHAP determines the facts deterministically; the LLM only ever phrases and grounds them.
 
-### Technical Implementation Details
+The repo leaves out the binary `.pbix` on purpose. In Import mode it embeds the underlying rows.
 
-- **Scoped demo input**: the system answers questions about pre-validated Phase 8 test-set applicants, not free-form live input, to keep the first version's failure surface bounded and testable.
-- **Preset-question interface**: the applicant UI surfaces fixed prompts ("Why was I declined?", "What can I do to improve?", "Show me the cited rule") rather than an open text box. Same multi-agent routing underneath, deliberately bounded input surface on top — an open-ended chat box is left as future work (see [Future Development](#future-development)).
-- **Faithfulness-gated responses**: `COMPLIANCE_RAG_AGENT` output is checked against a RAGAS faithfulness threshold before `REPORTING_AGENT` is allowed to use it.
-- **Model backend**: Azure OpenAI for production/demo runs; Groq (free tier) during local development and iteration.
+## Tech Stack
 
-## Backend Technologies
-
-- **LangGraph** – Multi-agent orchestration; state-machine-based routing between the four agents above.
-- **Azure OpenAI Service** – LLM backend for `ASSISTANT_AGENT`, `COMPLIANCE_RAG_AGENT`, and `REPORTING_AGENT`.
-- **LightGBM / scikit-learn** – Classifier (LightGBM) and calibration/baseline tooling (`CalibratedClassifierCV`, logistic regression).
-- **SHAP** – Global and per-prediction local explainability (`TreeExplainer`).
-- **PostgreSQL + pgvector** – Feature store, model logs, and the compliance-corpus vector index — one database for the whole system, not a separate vector DB.
-- **RAGAS** – Faithfulness evaluation for generated Adverse Action explanations.
-- **MLflow** – Experiment tracking across model variants.
-- **FastAPI** – REST API (`/predict`, `/explain/{id}`, `/adverse-action/{id}`, `/chat`, `/health`).
-- **Streamlit** – Developer-view debug panel: which agent fired, raw SHAP values, retrieved corpus chunks, faithfulness score per turn.
-- **python-docx** – Adverse Action Notice export to Word, unrestricted (no page-limit license constraints).
-- **Evidently AI** – Drift monitoring on model confidence/feature distributions over time.
-
-## Frontend Technologies
-
-- **React** – Single-page applicant-input form (feature entry or a preset test applicant) with a rich result view — risk-score gauge, SHAP waterfall chart, generated Adverse Action notice — plus a preset-question follow-up panel and a dashboard link.
-- **Tailwind CSS** – Styling.
-- **Power BI** – Business/risk-team dashboard (published via "Publish to Web," kept separate from the applicant-facing tool — see below).
-
-## Development Tools
-
-- **VS Code** – Primary editor.
-- **Claude Code** – Phase-by-phase implementation, with resource checkpoints and report updates at each stage (see `roadmap.md`).
-- **Postman** – API testing.
-- **Git / GitHub Actions** – Version control, CI (tests + lint on push).
-
-## Business Impact
-
-Credit Verdict addresses a real, named compliance problem, not a hypothetical one:
-
-- **Legal defensibility** — CFPB Circular 2023-03 explicitly states creditors cannot rely on generic denial reasons that don't reflect the model's actual decision factors; this project's SHAP-to-citation pipeline is a direct answer to that requirement.
-- **Regulatory alignment ahead of a real deadline** — OSFI Guideline E-23's AI-specific explainability and independent-validation requirements take effect May 1, 2027; this project's design already anticipates that bar.
-- **Trustworthy risk decisions** — calibration means the model's probability outputs are usable for actual business decisions (portfolio expected-loss estimates, cutoff tradeoffs), not just ranking.
-- **Auditability** — every generated explanation is faithfulness-checked and traceable back to the specific regulatory/policy text it cites.
-
-## Key Features
-
-### Calibrated Risk Scoring
-- LightGBM benchmarked honestly against a logistic regression baseline
-- Explicit calibration (Platt scaling or isotonic regression, chosen based on the observed miscalibration pattern) — not just an AUC number
-
-### Explainable, Citation-Audited Adverse Action Notices
-- Per-applicant SHAP breakdown (global and local)
-- Plain-English denial explanations grounded in real ECOA §1002.9 and OSFI E-23 text
-- RAGAS faithfulness check on every generated explanation before it's shown
-
-### Try-It-Yourself Scoring Form
-- A single React form: enter (or pick a preset test) applicant features and get back a risk score, SHAP explanation, and Adverse Action notice if declined — the direct "input → score" surface a recruiter can try in 30 seconds
-- Distinct from both the Power BI dashboard (portfolio-level) and the follow-up Q&A below — this is the one-shot scoring flow, and the source footage for the hero GIF
-
-### Explainable Follow-Up Q&A
-- Preset question buttons ("Why was I declined?", "What can I do to improve?", "Show me the cited rule") — not an open-ended chat box — trigger the same multi-agent LangGraph pipeline and render answers in an expanding citation panel
-- Scoped to validated test applicants for the first version — see [Technical Implementation Details](#technical-implementation-details)
-
-### Business Dashboard (Separate from the Applicant Tool)
-- Risk segmentation, cutoff tradeoff analysis (grounded in an explicit cost matrix — see the report's Section 5.2), portfolio expected loss
-- Deliberately kept as a separate surface from the applicant-facing tool — see below
-
-### Transparent AI Reasoning
-- Every pipeline step (SHAP computation → retrieval → generation → faithfulness check) is logged
-- Streamlit developer view for inspecting agent decisions and retrieved evidence in real time
-
-## System Components
-
-The system follows a modular, multi-agent design pattern:
-
-### Agent Layer
-- **Explanation Agent** — deterministic SHAP factor retrieval
-- **Compliance RAG Agent** — grounded retrieval + faithfulness check
-- **Reporting Agent** — final synthesis
-- **Assistant Agent** — general conversation handling
-
-### Manager Layer
-- **Follow-Up Q&A Orchestrator** — LangGraph state machine; selection and termination logic
-
-### Plugin/Module Layer
-- **SHAP module** — wraps the Phase 7 explainer
-- **Corpus retrieval module** — pgvector lookup against the compliance corpus
-- **Faithfulness check module** — RAGAS scoring
-- **Notice generation module** — plain-English + Word export via python-docx
-- **Logging module** — agent reasoning trace
-
-### API & Interface Layer
-- **FastAPI application** — REST endpoints for scoring, explanation, chat
-- **Streamlit interface** — developer debug view
-- **React application** — applicant-input form + result view + preset-question follow-up panel, plus business dashboard link
-
-## Responsible AI Components
-
-Credit Verdict incorporates several responsible-AI practices to ensure transparency, accountability, and regulatory alignment:
-
-- **Transparent Reasoning Process** — every pipeline step is logged with timestamps, from SHAP computation through faithfulness verification, so a decision can be traced end to end.
-- **Structured Agent Reasoning** — `EXPLANATION_AGENT`'s deterministic facts are kept separate from `COMPLIANCE_RAG_AGENT`'s grounded phrasing; intermediate steps are logged and auditable, not collapsed into a single opaque LLM call.
-- **Decision Criteria Transparency** — calibration methodology, cutoff thresholds, and their business tradeoffs are documented in `CreditRisk_Project_Report.md`, not just implied by the model.
-- **Citation Faithfulness Auditing** — every generated explanation is checked against its retrieved source before being shown, the same role RAGAS's faithfulness metric plays that Bing-search citation tracking plays in comparable reference architectures.
-- **Scoped Deployment** — the applicant tool only answers on pre-validated test applicants in its first version, a deliberate constraint to keep the system's failure surface known and testable rather than open-ended.
-
-## Why the Applicant Tool and Dashboard Are Separate
-
-This is a deliberate design decision, not an oversight: the applicant-facing tool (scoring form + follow-up Q&A) and the Power BI dashboard serve **different audiences with different appropriate data access**.
-
-- The **dashboard** is for the internal risk/business team — portfolio-wide analytics, aggregate risk segments.
-- The **applicant tool** is for an individual applicant — and should only ever see *their own* decision, never portfolio-wide data.
-
-Merging these into one interface would mean building an access-control problem that doesn't need to exist. Keeping them separate — cross-linked from one landing page — respects that boundary by construction rather than by policy.
-
-Within the applicant tool itself, the same reasoning shaped the choice of preset question buttons over an open-ended chat box for follow-up Q&A (see [Technical Implementation Details](#technical-implementation-details)): a bounded, known set of questions keeps the failure surface testable, versus the much larger surface an open text box would expose in a first version.
+- Python: pandas, scikit-learn, LightGBM, SHAP, MLflow, SQLAlchemy
+- PostgreSQL 16 in Docker
+- SQL: `generate_series`, window functions, `PERCENTILE_CONT`
+- Power BI Desktop: Power Query, DAX (`CALCULATE`, `SUMX`, `SELECTEDVALUE`), What-if parameters
 
 ## Quick Start
 
 ### Prerequisites
-- Python 3.10+
+- Python 3.13. Earlier 3.10+ versions haven't been tested against the pinned packages.
 - Docker
-- PostgreSQL (or use the provided `docker-compose.yml`)
-- Azure OpenAI resource (or a Groq API key for local development)
-- Kaggle account + API credentials (`kaggle.json`) for the dataset
+- Power BI Desktop (Windows) if you want to open the dashboard
+- The Home Credit CSVs from Kaggle, saved in `data/raw/`
 
 ### Installation
 ```bash
@@ -232,92 +164,67 @@ cd credit-verdict
 
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
-
 pip install -r requirements.txt
+
+cp .env.example .env       # then edit values if you need to
 ```
 
-### Environment Setup
+### Run the pipeline
 ```bash
-cp .env.example .env
-# Edit .env with your DB connection string, Azure OpenAI / Groq keys, Kaggle credentials
+docker compose up -d postgres          # Postgres on host port 5433
+
+python ml/pipeline/features.py         # writes data/processed/features.parquet
+python ml/modeling/train.py            # logistic baseline + LightGBM, logged to MLflow
+python ml/modeling/calibration.py      # diagnostic + isotonic calibration
+python ml/explain/shap_analysis.py     # SHAP plots + reports/top_shap_factors.json
+python ml/modeling/score_and_write.py  # writes `scored_applications` to Postgres
+
+mlflow ui --backend-store-uri sqlite:///mlflow.db   # inspect runs
 ```
 
-### Running the Application
-```bash
-# Backend + Postgres/pgvector
-docker compose up -d
+Run the queries in `business/sql/` against the `credit_risk` database (host `127.0.0.1`, port `5433`).
 
-# API
-PYTHONPATH=backend uvicorn backend.main:app --reload --port 8000
-
-# Developer view (separate terminal)
-streamlit run backend/dev_view.py
-```
+> **Port note:** Postgres maps to host port 5433, not 5432. Another service on the author's Windows machine already held 5432 and quietly took over Docker's mapping. If you don't have that conflict, change the port in `docker-compose.yml`.
 
 ## Project Structure
 
 ```
 .
-├── data/                     # raw/interim/processed/external (gitignored; regenerate via ml/pipeline)
-├── notebooks/                # EDA, modeling, and evaluation notebooks, numbered by run order
+├── data/                     # raw/interim/processed/external (gitignored, regenerate via ml/pipeline)
+├── notebooks/                # 01_eda_application, 02_feature_check
 ├── ml/
-│   ├── pipeline/             # Data ingestion, cleaning, feature engineering
-│   ├── modeling/             # Training, calibration
-│   └── explain/              # SHAP analysis
-├── models/                   # Trained/serialized model artifacts (gitignored)
-├── reports/                  # Generated figures + SHAP output (reports/figures/, reports/top_shap_factors.json)
-├── rag/                      # LangGraph agents, corpus builder, Adverse Action generator
-├── backend/                  # FastAPI app, Streamlit dev view
-├── frontend/                 # React applicant-input form + result view + preset-question panel + dashboard link
-├── business/                 # Power BI dashboard assets, business case materials
-├── assets/                   # Demo GIF / README screenshots
-├── docs/
-│   └── adr/                  # Architecture Decision Records (e.g., scaling strategy)
-├── tests/
-├── roadmap.md                      # Phase-by-phase build roadmap
-├── CreditRisk_Project_Report.md    # Full 9-section project report
-├── MODEL_CARD.md                   # Model card (intended use, limitations, performance)
+│   ├── pipeline/             # features.py: multi-table feature engineering
+│   ├── modeling/             # train.py, calibration.py, score_and_write.py
+│   └── explain/              # shap_analysis.py
+├── business/
+│   ├── sql/                  # four Postgres analysis queries
+│   └── powerbi/              # PBIP project: .pbip + .Report + .SemanticModel
+├── reports/                  # figures (dashboard, calibration, SHAP, MLflow) + top_shap_factors.json
+├── models/                   # serialized model artifacts (gitignored)
+├── CreditRisk_Project_Report.md    # full project report
 ├── docker-compose.yml
 └── requirements.txt
 ```
 
-## Testing
-```bash
-pytest tests/ -v
-```
-CI runs tests and lint on every push (`.github/workflows/ci.yml`).
+## Limitations
+
+- **The data is from 2018.** Lending patterns and economic conditions have changed since then.
+- **Scoring covers the held-out set only.** That is 61,503 applicants, not all 307,511.
+- **Expected loss is a proxy.** It multiplies PD by credit amount. It has no loss-given-default and no cost matrix, so the project can't yet justify one specific cutoff.
+- **There is no fairness audit.** Any real deployment would need a disparate-impact review under ECOA first.
+- **No independent party validated the model.** OSFI Guideline E-23 expects that for credit models, and this is a solo portfolio build.
 
 ## Dataset
 
-[Home Credit Default Risk](https://www.kaggle.com/c/home-credit-default-risk) (Kaggle). Real, multi-table application data — see `notebooks/` for the full EDA.
-
-## Model Card
-
-See [`MODEL_CARD.md`](MODEL_CARD.md) for intended use, training data, performance across slices, and known limitations.
-
-## Future Development
-
-1. Formal fairness/disparate-impact audit across protected classes — required before any real deployment, given ECOA's anti-discrimination provisions
-2. Live-data connector instead of the static Kaggle dataset
-3. Human-in-the-loop review UI for generated Adverse Action notices before they're sent
-4. Tableau mirror of the Power BI dashboard (for roles that specifically screen on Tableau)
-5. Expanded compliance corpus (additional CFPB Circulars, provincial Canadian consumer-protection sources)
-6. An open-ended free-text chat interface — the first version deliberately uses preset question buttons instead, to keep the failure surface bounded and testable (see [Why the Applicant Tool and Dashboard Are Separate](#why-the-applicant-tool-and-dashboard-are-separate))
-
-## Assumptions
-
-- The Home Credit Default Risk dataset (2018) reflects lending patterns from that period; a real deployment would require current, proprietary data.
-- The Adverse Action generator is a working prototype of the pattern, not a compliance-certified system — real deployment requires legal review of the policy corpus and human sign-off on generated notices.
-- Processing time target: real-time scoring; the current architecture is a single FastAPI service, documented as a starting point for scale in `docs/adr/001-scaling-strategy.md`, not a production SLA claim.
+[Home Credit Default Risk](https://www.kaggle.com/c/home-credit-default-risk) on Kaggle: `application_train`, `bureau`, `previous_application`, `credit_card_balance`. This repo doesn't include the data (see `.gitignore`). Download it under Kaggle's terms.
 
 ## Reference
 
-- Microsoft AI Agents Hackathon — [RiskWise: Procurement Risk Analysis System](https://github.com/microsoft/AI_Agents_Hackathon/issues/526) (multi-agent routing pattern reference)
-- CFPB Circulars 2022-03 and 2023-03 — AI/ML credit decisions and specific-reasons requirements
-- OSFI Guideline E-23 (Model Risk Management, 2027)
-- [kozodoi/Kaggle_Home_Credit](https://github.com/kozodoi/Kaggle_Home_Credit), [jamesdellinger/kaggle_home_credit_default_risk_competition](https://github.com/jamesdellinger/kaggle_home_credit_default_risk_competition), [Bougeant/Home_Credit_default_risk](https://github.com/Bougeant/Home_Credit_default_risk), [NoxMoon/home-credit-default-risk](https://github.com/NoxMoon/home-credit-default-risk) — feature engineering and imbalance-handling references
+- 12 CFR §1002.9 (Regulation B / ECOA) and CFPB Circulars 2022-03 and 2023-03 on AI/ML credit decisions and the specific-reasons requirement
+- OSFI Guideline E-23, Model Risk Management (2027)
+- Feature-engineering and imbalance-handling references: [kozodoi/Kaggle_Home_Credit](https://github.com/kozodoi/Kaggle_Home_Credit), [jamesdellinger/kaggle_home_credit_default_risk_competition](https://github.com/jamesdellinger/kaggle_home_credit_default_risk_competition), [Bougeant/Home_Credit_default_risk](https://github.com/Bougeant/Home_Credit_default_risk), [NoxMoon/home-credit-default-risk](https://github.com/NoxMoon/home-credit-default-risk)
 - Chip Huyen, *Designing Machine Learning Systems*
 
 ## License
 
-This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
+This project uses the MIT License. See [LICENSE](LICENSE) for details.
