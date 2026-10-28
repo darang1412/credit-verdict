@@ -1,6 +1,5 @@
-# Skeleton only — services are stubbed out, not fully implemented yet.
-# backend/ has no Dockerfile or app code yet, so `docker-compose up` will not
-# work end-to-end until a later phase builds those out.
+# Postgres for the scored_applications table. Start it with:
+#   docker compose up -d postgres
 
 services:
   postgres:
@@ -17,15 +16,6 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  backend:
-    build:
-      context: ./backend
-    env_file: .env
-    ports:
-      - "8000:8000"
-    depends_on:
-      - postgres
 
 volumes:
   postgres_data:

@@ -301,7 +301,7 @@ No API exists yet. This table is the interface I would build for the serving lay
 
 ### 6.3 Deployment (Docker Built, Azure Planned)
 
-**Built.** `docker-compose.yml` runs Postgres 16 locally with `docker compose up -d postgres`. It exposes the database on host port 5433. The container still listens on 5432 inside. I changed the host port because another service on my Windows machine already held 5432 and quietly took over Docker's mapping. The symptom was a password failure from the host with a password that worked inside the container. That pointed to a port collision and not to wrong credentials. The compose file's `backend` service is a stub with no Dockerfile, so a bare `docker compose up` fails. Start `postgres` only.
+**Built.** `docker-compose.yml` runs Postgres 16 locally with `docker compose up -d postgres`. It exposes the database on host port 5433. The container still listens on 5432 inside. I changed the host port because another service on my Windows machine already held 5432 and quietly took over Docker's mapping. The symptom was a password failure from the host with a password that worked inside the container. That pointed to a port collision and not to wrong credentials. The compose file defines only the `postgres` service.
 
 **Planned.** I would containerize a FastAPI backend and deploy it to Azure App Service. There is no live demo URL.
 
